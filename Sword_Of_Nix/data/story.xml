@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='utf-8'?>
+<story version="1">
+  <!-- English runtime text; the supplied Chinese original is preserved at docs/source-game/data/story_source_zh.xml. -->
+  <scene id="opening_briefing" mode="phone">
+    <line speaker="Encrypted Contract" duration="1.25">Contract ID: Shadow-041</line>
+    <line speaker="Objective" duration="1.70">Destroy a target marked “cargo.”</line>
+    <line speaker="Location" duration="1.70">East District Power Station // Akai gang stronghold</line>
+    <line speaker="Intel Summary" duration="2.10">The target is under tight control by the criminal organization “Akai gang.”
+Find a way through their outer strongholds first.</line>
+    <line speaker="Payment" duration="1.45">Paid upon confirmed destruction.</line>
+    <line speaker="Instructions" duration="1.65">Don't ask what the cargo is. Leave no witnesses.</line>
+  </scene>
+  <scene id="tutorial_materialize" mode="world">
+    <line target="blade" speaker="Akai Blade Guard" duration="1.65">What the hell?! Did you just come out of the lightning?!</line>
+  </scene>
+  <scene id="tutorial_arrival" mode="world">
+    <line target="blade" speaker="Akai Blade Guard" duration="2.80">Who the fuck are you? Think you belong here?
+Get out before I get angry.</line>
+    <line target="player" speaker="Shadow" duration="1.40">……</line>
+    <line target="blade" speaker="Akai Blade Guard" duration="2.10">Fuck. Looking for trouble, huh.</line>
+  </scene>
+  <scene id="tutorial_gunner_alarm" mode="world">
+    <line target="gunner" speaker="Akai Gunner" duration="2.00">Fuck!! Get over here!! We're under attack!</line>
+  </scene>
+  <scene id="tutorial_reinforcements" mode="world">
+    <line target="reinforcement_lead" speaker="Akai reinforcements" duration="1.70">Kill him!!</line>
+  </scene>
+  <scene id="interior_floor_1" mode="world">
+    <line target="member_0" speaker="Akai Blade Guard" duration="2.20">When's this damn rain going to stop? My boots are soaked through.</line>
+    <line target="member_1" speaker="Akai Gunner" duration="2.20">Quit whining. We'll grab a drink upstairs after this shift.</line>
+    <line target="member_0" speaker="Akai Blade Guard" duration="1.70">Wait… Someone's over there.</line>
+  </scene>
+  <scene id="interior_floor_2" mode="world">
+    <line target="member_1" speaker="Akai Blade Guard" duration="2.20">That thing in the warehouse is scratching the crate again.</line>
+    <line target="member_2" speaker="Akai Gunner" duration="2.10">Shut up. Pretend you didn't hear it.</line>
+    <line target="member_0" speaker="Akai Blade Guard" duration="1.70">It's gone quiet downstairs… Intruder!</line>
+  </scene>
+  <scene id="interior_floor_3" mode="world">
+    <line target="member_0" speaker="Akai Gunner" duration="2.10">Is the Warden still upstairs?</line>
+    <line target="member_1" speaker="Akai Blade Guard" duration="2.10">Yeah. No one gets past him.</line>
+    <line target="member_2" speaker="Akai Gunner" duration="1.70">He's coming up—open fire!</line>
+  </scene>
+  <scene id="interior_floor_4" mode="world">
+    <line target="member_0" speaker="Akai Gunner" duration="2.10">Why are all the alarms downstairs lit up?</line>
+    <line target="member_1" speaker="Akai Blade Guard" duration="2.10">Hold the stairs. Don't let him reach the top floor.</line>
+    <line target="member_2" speaker="Akai Gunner" duration="1.70">Got him! Under the platform!</line>
+  </scene>
+  <scene id="interior_floor_5" mode="world">
+    <line target="member_0" speaker="Akai Blade Guard" duration="2.10">Isn't the Warden coming down to help?</line>
+    <line target="member_1" speaker="Akai Gunner" duration="2.10">His orders are to guard the cargo.</line>
+    <line target="member_2" speaker="Akai Gunner" duration="1.70">Target on the top floor! Crossfire!</line>
+  </scene>
+  <scene id="boss_arrival" mode="world">
+    <line target="boss" speaker="The Warden" duration="3.40">Stop. You break into someone's home and start slaughtering people. Don't you think that's rude?</line>
+    <line target="player" speaker="Shadow" duration="1.30">……</line>
+    <line target="boss" speaker="The Warden" duration="1.80">Oh, not much of a talker?</line>
+    <line target="player" speaker="Shadow" duration="1.20">……</line>
+    <line target="boss" speaker="The Warden" duration="3.20">Good. Let's see if you stay silent after I tear off both your legs.</line>
+  </scene>
+  <scene id="boss_passed" mode="world">
+    <line target="boss" speaker="The Warden" duration="3.40">You... you seem to anticipate... my moves</line>
+    <line target="player" speaker="Shadow" duration="1.30">……</line>
+    <line target="boss" speaker="The Warden" duration="1.80">Could you be... I get it. You're here to...</line>
+  </scene>
+  <scene id="post_boss_epilogue" mode="comic">
+    <line target="warehouse" speaker="Act II  //  cargo" duration="3.10">The power station's underground warehouse.
+The contract target is right under that lamp.</line>
+    <line target="crate" speaker="Target Confirmed" duration="2.80">No ID. No warning.
+Just a damp wooden crate.</line>
+    <line target="blade" speaker="Execute Contract" duration="2.70">Shadow draws his blade.
+One last strike to finish the job.</line>
+    <line target="blade_hold" speaker="……" duration="1.55">—Meow.</line>
+    <line target="cat" speaker="cargo" duration="3.60">The lid slowly springs open.
+The thing inside is trembling.</line>
+  </scene>
+  <barks role="blade">
+    <line duration="3.0">Kneel now, and you'll still die in one piece.</line>
+    <line duration="3.0">You think you can just break into Akai gang territory?</line>
+    <line duration="3.0">One more step and I'll chop you to pieces.</line>
+    <line duration="3.0">Bounty hunter? You look more like a stray dog.</line>
+    <line duration="3.0">I was just wondering how to get my kicks tonight.</line>
+    <line duration="3.0">Wrong rooftop, you bastard.</line>
+  </barks>
+  <barks role="gunner">
+    <line duration="3.0">Don't move! Move again and I'll shoot!</line>
+    <line duration="3.0">Target sighted. Shoot to kill!</line>
+    <line duration="3.0">Can you dodge the first shot?</line>
+    <line duration="3.0">You dare touch the Akai gang's cargo?</line>
+    <line duration="3.0">Get under the light, asshole!</line>
+    <line duration="3.0">This is the end of the road.</line>
+  </barks>
+</story>

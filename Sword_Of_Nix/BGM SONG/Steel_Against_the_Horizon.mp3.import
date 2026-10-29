@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://ct6gbycn1bsem"
+path="res://.godot/imported/Steel_Against_the_Horizon.mp3-119867d4d8cd82d00cdc6dc6a6528dc6.mp3str"
+
+[deps]
+
+source_file="res://BGM SONG/Steel_Against_the_Horizon.mp3"
+dest_files=["res://.godot/imported/Steel_Against_the_Horizon.mp3-119867d4d8cd82d00cdc6dc6a6528dc6.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

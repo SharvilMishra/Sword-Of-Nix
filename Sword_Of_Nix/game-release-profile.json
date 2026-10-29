@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "exclude": [
+    "scripts/tuning_panel.gd",
+    "scripts/hitbox_debug_overlay.gd"
+  ],
+  "changes": {
+    "scripts/game.gd": [
+      {
+        "before": "const TuningPanel = preload(\"res://scripts/tuning_panel.gd\")\n",
+        "after": ""
+      },
+      {
+        "before": "const HitboxDebugOverlay = preload(\"res://scripts/hitbox_debug_overlay.gd\")\n",
+        "after": ""
+      },
+      {
+        "before": "\ttuning_panel = TuningPanel.new()\n\tadd_child(tuning_panel)\n\thitbox_debug_overlay = HitboxDebugOverlay.new()\n\thitbox_debug_overlay.setup(self)\n\tadd_child(hitbox_debug_overlay)\n",
+        "after": ""
+      },
+      {
+        "before": "\"Controls\\nMove A/D or Arrow Keys  •  Jump K\\nDrop Through Platforms S/Down + K  •  Directional Slash J/X\\nFocus L/Shift  •  Restart R  •  Pause ESC  •  Tuning F1/P\"",
+        "after": "\"Controls\\nMove A/D or Arrow Keys  •  Jump K\\nDrop Through Platforms S/Down + K  •  Directional Slash J/X\\nFocus L/Shift  •  Restart R  •  Pause ESC\""
+      }
+    ],
+    "scripts/boss_battle.gd": [
+      {
+        "before": "const TuningPanel = preload(\"res://scripts/tuning_panel.gd\")\n",
+        "after": ""
+      },
+      {
+        "before": "const HitboxDebugOverlay = preload(\"res://scripts/hitbox_debug_overlay.gd\")\n",
+        "after": ""
+      },
+      {
+        "before": "\ttuning_panel = TuningPanel.new()\n\tadd_child(tuning_panel)\n\thitbox_debug_overlay = HitboxDebugOverlay.new()\n\thitbox_debug_overlay.setup(self)\n\tadd_child(hitbox_debug_overlay)\n",
+        "after": ""
+      }
+    ],
+    "scripts/tuning_store.gd": [
+      {
+        "before": "\tvar config := ConfigFile.new()\n\tif config.load(CONFIG_PATH) == OK:\n\t\tvar stored_version := int(config.get_value(\"meta\", \"version\", 0))\n\t\tif stored_version >= 4 and stored_version <= CONFIG_VERSION:\n\t\t\tfor key in DEFAULTS.keys():\n\t\t\t\t_values[key] = float(config.get_value(\"tuning\", key, DEFAULTS[key]))\n",
+        "after": ""
+      }
+    ],
+    "scripts/title_screen.gd": [
+      {
+        "before": "\"Move A/D or Arrow Keys  •  Jump K  •  Drop Through Platforms S/Down + K\\nDirectional Slash J/X/Click  •  Focus L/Shift\\nRestart R  •  Pause ESC  •  Live Tuning F1/P\"",
+        "after": "\"Move A/D or Arrow Keys  •  Jump K  •  Drop Through Platforms S/Down + K\\nDirectional Slash J/X/Click  •  Focus L/Shift\\nRestart R  •  Pause ESC\""
+      }
+    ]
+  }
+}

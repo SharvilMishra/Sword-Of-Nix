@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="sword-of-nix-loading-screen" content="1">
+  <meta name="theme-color" content="#080b12">
+  <link rel="icon" type="image/png" href="/assets/share/favicon.png">
+  <title>$GODOT_PROJECT_NAME</title>
+  $GODOT_HEAD_INCLUDE
+  <!-- Project-owned loading shell generated from this template. -->
+  <style>
+{{GAME_FONTS}}
+    :root { color-scheme: dark; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #080b12; color: #edf4f8; font-family: "Noto Sans SC", system-ui, sans-serif; }
+    #canvas { display: block; width: 100%; height: 100%; outline: none; }
+    #loading { position: fixed; inset: 0; display: grid; align-content: center; justify-items: center; gap: 18px; box-sizing: border-box; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); isolation: isolate; background: #080b12; text-align: center; }
+    #loading::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 50% 43%, #142632 0, #0b101a 44%, #080b12 78%); }
+    #loading::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .16; background: repeating-linear-gradient(0deg, transparent 0 5px, #79e6f111 6px 7px); }
+    #loading[hidden], [hidden] { display: none !important; }
+    #loading > * { width: min(520px, 100%); }
+    #loading > .game-icon { width: 64px; height: 64px; object-fit: contain; filter: drop-shadow(0 0 16px #48d9ef66); }
+    #game-title { margin: 0; font-family: "Noto Sans SC", system-ui, sans-serif; font-size: clamp(30px, 6vw, 54px); font-weight: 800; letter-spacing: .16em; line-height: 1.1; text-transform: uppercase; text-shadow: 0 0 24px #53d9ee44; }
+    .subtitle { margin: -8px 0 8px; color: #91a8b5; font-size: 12px; letter-spacing: .32em; text-transform: uppercase; }
+    #loading-status { margin: 0; min-height: 1.5em; color: #8be7f2; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; }
+    .bar { width: min(360px, 78vw); height: 12px; padding: 2px; box-sizing: border-box; border: 1px solid #64d8e7; background: #05080d; box-shadow: 0 0 18px #3cd7e522; }
+    .bar > span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #41c7d8, #e94658); transition: width .18s ease-out; }
+    .bar.indeterminate > span { width: 28%; animation: sweep 1.15s ease-in-out infinite alternate; }
+    @keyframes sweep { from { margin-left: 0; } to { margin-left: 72%; } }
+    progress { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    #loading-tip { margin: 0; color: #c4d1d8; font-size: 13px; letter-spacing: .04em; }
+    #loading-notice { margin: 0; max-width: 420px; color: #ffc3c9; font-size: 13px; line-height: 1.55; }
+    #loading button { min-height: 44px; width: auto; padding: 10px 24px; cursor: pointer; border: 1px solid #e94658; background: #171018; color: #fff; font: inherit; font-size: 13px; letter-spacing: .18em; }
+    #loading button:hover { background: #e94658; }
+    #loading button:focus-visible { outline: 3px solid #8be7f2; outline-offset: 4px; }
+    @media (prefers-reduced-motion: reduce) { .bar > span { transition: none; } .bar.indeterminate > span { animation: none; width: 100%; opacity: .55; } }
+    @media (max-height: 420px) { #loading { gap: 10px; } #game-title { font-size: clamp(24px, 5vw, 38px); } .subtitle { margin-bottom: 0; } }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" tabindex="0">Your browser does not support canvas.</canvas>
+  <section id="loading" role="status" aria-live="polite">
+    <img class="game-icon" src="/assets/share/favicon.png" alt="Sword Of Nix icon" width="64" height="64">
+    <h1 id="game-title">Sword Of Nix</h1>
+    <p class="subtitle">Rain-streaked city // neon-noir action</p>
+    <p id="loading-status">Preparing the run…</p>
+    <div class="bar indeterminate" id="loading-bar" aria-hidden="true"><span></span></div>
+    <progress id="loading-progress" aria-label="Game loading progress"></progress>
+    <p id="loading-tip">A/D move · K jump · J/X slash · L/Shift focus · R replay · Esc pause</p>
+    <p id="loading-notice" hidden></p>
+    <button id="loading-retry" type="button" hidden>RETRY</button>
+    <noscript>JavaScript is required to play this game.</noscript>
+  </section>
+  <script>
+    (() => {
+      const config = $GODOT_CONFIG;
+      const threads = $GODOT_THREADS_ENABLED;
+      const canvas = document.getElementById('canvas');
+      const loading = document.getElementById('loading');
+      const status = document.getElementById('loading-status');
+      const progress = document.getElementById('loading-progress');
+      const bar = document.getElementById('loading-bar');
+      const fill = bar.firstElementChild;
+      const tip = document.getElementById('loading-tip');
+      const notice = document.getElementById('loading-notice');
+      const retry = document.getElementById('loading-retry');
+      retry.addEventListener('click', () => window.location.reload());
+      let failed = false;
+      let ready = false;
+      const startedAt = performance.now();
+      let lastProgressAt = startedAt;
+      let downloadedBytes = 0;
+      let downloadComplete = false;
+      const updateNotice = () => {
+        if (failed || ready || performance.now() - startedAt < 30000) return;
+        notice.hidden = false;
+        retry.hidden = false;
+        notice.textContent = performance.now() - lastProgressAt >= 30000
+          ? 'Loading has paused. You can continue waiting or retry.'
+          : 'The game is still loading. You can continue waiting or retry.';
+      };
+      const onWindowError = (event) => fail(event.error || new Error('Engine startup error'));
+      const onUnhandledRejection = (event) => fail(event.reason || new Error('Engine startup rejected'));
+      const startupWatch = setInterval(updateNotice, 1000);
+      const stopObserving = () => {
+        clearInterval(startupWatch);
+        window.removeEventListener('error', onWindowError);
+        window.removeEventListener('unhandledrejection', onUnhandledRejection);
+      };
+      const fail = (error) => {
+        if (failed || ready) return;
+        failed = true;
+        stopObserving();
+        console.error('[game-loading] Startup failed', error);
+        loading.hidden = false;
+        status.textContent = 'Unable to load Sword Of Nix.';
+        bar.hidden = true;
+        progress.hidden = true;
+        tip.hidden = true;
+        notice.hidden = true;
+        retry.hidden = false;
+      };
+      window.addEventListener('error', onWindowError);
+      window.addEventListener('unhandledrejection', onUnhandledRejection);
+      const onProgress = (current, total) => {
+        if (failed || ready) return;
+        if (Number.isFinite(current) && current > downloadedBytes) {
+          downloadedBytes = current;
+          lastProgressAt = performance.now();
+        }
+        if (!downloadComplete && Number.isFinite(total) && total > 0 && Number.isFinite(current) && current >= total) {
+          downloadComplete = true;
+          lastProgressAt = performance.now();
+        }
+        updateNotice();
+        if (!Number.isFinite(total) || total <= 0 || !Number.isFinite(current) || current < 0) {
+          progress.removeAttribute('value');
+          bar.classList.add('indeterminate');
+          status.textContent = 'Loading…';
+          return;
+        }
+        progress.max = total;
+        progress.value = Math.min(current, total);
+        bar.classList.remove('indeterminate');
+        fill.style.width = `${Math.min(100, current / total * 100)}%`;
+        status.textContent = current >= total ? 'Starting the game…' : `Loading ${Math.floor(current / total * 100)}%`;
+      };
+      const start = async () => {
+        if (failed) return;
+        try {
+          lastProgressAt = performance.now();
+          const missing = Engine.getMissingFeatures({ threads });
+          if (missing.length) throw new Error(`Missing browser features: ${missing.join(', ')}`);
+          const engine = new Engine({ ...config, canvas });
+          await engine.startGame({ onProgress });
+          if (failed) return;
+          ready = true;
+          stopObserving();
+          notice.hidden = true;
+          retry.hidden = true;
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (failed) return;
+            loading.hidden = true;
+            if (config['focusCanvas']) canvas.focus();
+          }));
+        } catch (error) {
+          fail(error);
+        }
+      };
+      const script = document.createElement('script');
+      script.src = '$GODOT_URL';
+      script.addEventListener('load', start, { once: true });
+      script.addEventListener('error', () => fail(new Error('Engine script could not be loaded')), { once: true });
+      document.head.appendChild(script);
+    })();
+  </script>
+</body>
+</html>

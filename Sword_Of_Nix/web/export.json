@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "assets": {},
+  "shell": {
+    "builder": "web/build-shell.mjs",
+    "output": "web/loading.html"
+  }
+}
