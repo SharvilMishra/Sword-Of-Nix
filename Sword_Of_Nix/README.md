@@ -1,9 +1,77 @@
 # Sword Of Nix
 
-**Sword Of Nix** is an English-language, offline 2D action-scroller built from the supplied Shadow game source and integrated into the initialized Godot 4.7 `game-scroller` project.
+*A city in shadow. One blade against the night.*
 
-Start with the [project guide](docs/UMBRAL_RUN_README.md) for gameplay, controls, source layout and export instructions. The [entity design catalogue](docs/ENTITY_DESIGNS.md) documents the player, enemy roster, Warden, projectiles, story character, world sets and their exact asset paths. The [source-package contents manifest](PACKAGE_CONTENTS.md) summarizes what is included in the complete project ZIP.
+**Sword Of Nix** is a single-player 2D cyberpunk action-platformer made with Godot 4.7. Take the role of the Blue Wraith, a masked swordsman cutting through rain-soaked Nix City. Fight across the rooftops, break into the Akai Hideout, and face the Warden.
 
-Open `project.godot` in Godot 4.7 to run the game from `scenes/title_screen.tscn`. The title menu offers Play, Story, Warden Challenge, Character & Gear, and Settings. The playable hero now uses the user's blue masked-swordsman design across idle, run, jump, attack and defeat animation frames; Character & Gear displays the matching hero and equipment. The complete source, project configuration and supplied runtime assets are included in this package. The original Chinese story file, upstream documentation, archive manifests, credits and licensing/provenance notes are preserved under `docs/source-game/`.
+## Features
 
-Stage progress is stored in Godot's per-user save data. Completing the story prologue, rooftop and interior unlocks the next level; **Enter the City** resumes from the current saved level. Continuing restarts that level from its beginning, rather than restoring an in-level checkpoint.
+- Fast side-scrolling combat with directional katana slashes and projectile parries.
+- A two-jump limit, one-way platforms, and a forward Focus Dash.
+- Hold **E** to slow time with Focus; its three-second cooldown starts when you release the key.
+- Three player HP with brief damage protection and clear health feedback.
+- Story prologue, rooftop mission, multi-floor hideout, Warden battle, and an ending sequence.
+- Local level progression, replay access for cleared levels, and a cyberpunk-paintstroke title menu.
+- Separate music for the menu and regular stages versus story and boss battles.
+
+## Play
+
+### Open in Godot
+
+1. Install Godot 4.7 or a compatible newer version.
+2. Open the Sword_Of_Nix project folder and select project.godot.
+3. Let Godot import the project, then press **F5** to run the project's main scene.
+
+### Run from a terminal
+
+From inside the Sword_Of_Nix project folder, run:
+
+    godot --path .
+
+To open the project in the editor from the terminal:
+
+    godot --editor --path .
+
+These commands require the Godot executable to be available as godot in your terminal. If it is not, run the command with the full path to your Godot executable.
+
+## Controls
+
+| Input | Action |
+| --- | --- |
+| A / D or Left / Right | Move |
+| Space | Jump, up to two times before landing |
+| Hold S / Down, then press Space | Drop through a one-way platform |
+| J, X, or left-click | Slash and parry |
+| Hold E | Focus slow-motion; three-second cooldown after release |
+| Hold D + R | Focus Dash and slash forward |
+| F | Continue story dialogue |
+| Backspace | Restart the current level or room |
+| Esc | Open the battle menu: Leave Battle, Resume, or Restart |
+
+## Progress and saves
+
+Progress is saved locally on your device through Godot's user:// save location. Clearing a stage unlocks the next one. The title screen includes **Replay Cleared Levels** so you can revisit completed stages. Replaying a level does not erase your existing unlocks or completion records. Saves are local; the game does not require an account or online service.
+
+## Music
+
+- **Headlights on Wet Pavement** - title menu and regular stages.
+- **Steel Against the Horizon** - story prologue and Warden battle.
+
+## Project structure
+
+| Folder or file | Contents |
+| --- | --- |
+| project.godot | Godot project settings and main scene configuration. |
+| scenes/ | Title screen, story, rooftop, hideout, and boss scenes. |
+| scripts/ | Player, enemies, combat, story, menus, audio, and save logic. |
+| assets/ | Character, environment, story, audio, font, and UI assets. |
+| BGM SONG/ | Main game music tracks. |
+| data/ | Story content, localization, and game data. |
+| docs/ | Project guide, entity design notes, and asset notices. |
+| test/ | Project verification scripts. |
+
+For additional gameplay and entity details, see the [project guide](docs/UMBRAL_RUN_README.md) and [entity design catalogue](docs/ENTITY_DESIGNS.md).
+
+## Credits and asset use
+
+This project includes third-party and generated assets. Review the relevant notices and provenance records in docs/ and alongside the assets before reusing or redistributing them. No separate license for the complete game is declared here; ask before treating the entire project as open source.
