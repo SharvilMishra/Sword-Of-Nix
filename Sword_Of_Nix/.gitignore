@@ -290,3 +290,10 @@ game-captures/
 
 # Built only in an export snapshot.
 /web/loading.html
+
+# Private user preferences, AI handoff notes, and local publishing state
+USER_PROFILE.md
+MEMORY.md
+CONTINUE_WITH_ANOTHER_AI.md
+AGENT_WORKFLOW.md
+.manus-webdev/
