@@ -35,7 +35,7 @@ Use this guide when continuing the project in another AI coding agent.
 - Title: **Sword Of Nix**.
 - Menu: cyberpunk paintstroke treatment based on rainy Nix City reference; numbered navigation; includes play/enter city, story, Warden challenge, Character & Gear, Settings.
 - Player: user's blue masked swordsman reference, with swept dark hair, glowing cyan visor, navy/cobalt armor, trailing blue scarf and cyan katana. Active 4-frame animations are under `assets/characters/blue_wraith/`; original supplied hero sprites remain intact but inactive.
-- Controls: A/D or arrows move; Space double jump (maximum 2); F continues story; J/X or left-click slashes; L/Shift focus; hold D+R for focus dash; S/Down + Space drops through; Escape pauses; Backspace restarts.
+- Controls: A/D or arrows move; Space double jump (maximum 2); F continues story; J/X or left-click slashes; E Focus (3s active, 10s cooldown); hold D+R for focus dash; S/Down + Space drops through; Escape pauses; Backspace restarts.
 - Player has 3 HP, a brief invulnerability window after damage, and flashing feedback. At zero HP, Backspace retries the current section and Escape returns to title. The previous runtime rewind-on-death flow is removed.
 - Progress is saved locally through `scripts/save_store.gd` to Godot `user://`: current level, highest unlocked level, completed levels, tutorial completion and best rooftop time. The title Continue route resumes the current level from its start; there are no mid-level checkpoints yet.
 - Music: Headlights on menu/general gameplay per project guide; Steel Against the Horizon for story and battle. Follow more specific future user instructions if they revise this.

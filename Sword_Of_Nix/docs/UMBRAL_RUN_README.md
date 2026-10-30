@@ -19,7 +19,7 @@ The title menu uses the supplied rain-lit city artwork with a cyan paintstroke t
 | Hold `S` / Down, then `Space` | Drop through a one-way platform |
 | Hold `D` + `R` | Focus dash and slash to the right |
 | `J`, `X`, or left-click | Directional slash / projectile parry |
-| Hold `E` | Focus slow-motion; 3-second cooldown after release |
+| Press `E` | Focus slows the world for 3 seconds; 10-second cooldown from activation |
 | Backspace | Restart the current room/level |
 | Escape | Pause or resume |
 | Use the highlighted title-menu option | Start the opening flow or open that menu page |

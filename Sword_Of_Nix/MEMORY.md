@@ -26,13 +26,13 @@ This is the continuation brief for the game project. Read this first, then consu
 - Jump: Space, at most two jumps before landing.
 - Story dialogue: F continues (touch NEXT on mobile when mobile work is resumed).
 - Directional slash: J/X or left click.
-- Focus slow motion: hold E; a 3-second cooldown begins on release. This is separate from the D+R focus dash.
+- Focus: press E once; the world slows for 3 seconds while the player moves normally. The 10-second cooldown starts on activation. This is separate from the D+R focus dash.
 - Focus dash/slash: hold D + R. Replaces the earlier L+D+J chord as the simplified dash command.
 - Drop through one-way platform: hold S/Down, then Space.
 - Pause: Escape; restart: Backspace.
 - At zero HP: Backspace retries the current section; Escape returns to title.
 
-Keep these consistent in tutorial prompts, title hints, HUD, input maps, and docs. Hold E activates focus slow-motion with a 3-second cooldown after release; the dash remains D+R.
+Keep these consistent in tutorial prompts, title hints, HUD, input maps, and docs. Press E once to activate Focus: the world slows for 3 seconds while the player moves normally, with a 10-second cooldown from activation. The dash remains D+R.
 
 ## Music routing
 

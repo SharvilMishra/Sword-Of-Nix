@@ -8,7 +8,7 @@
 
 - Fast side-scrolling combat with directional katana slashes and projectile parries.
 - A two-jump limit, one-way platforms, and a forward Focus Dash.
-- Hold **E** to slow time with Focus; its three-second cooldown starts when you release the key.
+- Press **E** to activate Focus: you move normally while the world slows for 3 seconds. The 10-second cooldown starts on activation.
 - Three player HP with brief damage protection and clear health feedback.
 - Story prologue, rooftop mission, multi-floor hideout, Warden battle, and an ending sequence.
 - Local level progression, replay access for cleared levels, and a cyberpunk-paintstroke title menu.
@@ -44,7 +44,7 @@ These commands require the Godot executable to be available as godot in your ter
 | Space | Jump, up to two times before landing |
 | Hold S / Down, then press Space | Drop through a one-way platform |
 | J, X, or left-click | Slash and parry |
-| Hold E | Focus slow-motion; three-second cooldown after release |
+| Press E | Focus slows the world for 3s; 10s cooldown starts on activation |
 | Hold D + R | Focus Dash and slash forward |
 | F | Continue story dialogue |
 | Backspace | Restart the current level or room |

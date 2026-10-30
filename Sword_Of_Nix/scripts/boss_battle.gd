@@ -211,7 +211,7 @@ func _process(delta: float) -> void:
 			boss_hit_during_player_attack = false
 	elif state == BattleState.INTRO:
 		if is_instance_valid(player):
-			player.is_focusing = false
+			player.cancel_focus()
 	_update_hud()
 	queue_redraw()
 
@@ -894,7 +894,7 @@ func _update_hud() -> void:
 		return
 	timer_label.text = "%05.2f" % elapsed
 	focus_fill.size.x = 230.0 * player.focus_energy / 100.0
-	focus_text.text = "FOCUS ACTIVE" if player.is_focusing else ("FOCUS READY" if player.focus_cooldown_remaining <= 0.0 else "FOCUS %.1fs" % player.focus_cooldown_remaining)
+	focus_text.text = "FOCUS ACTIVE  %.1fs" % player.focus_duration_remaining if player.is_focusing else ("FOCUS READY" if player.focus_cooldown_remaining <= 0.0 else "FOCUS  %.1fs" % player.focus_cooldown_remaining)
 	player_health_label.text = "HP  " + "◆".repeat(player.health) + "◇".repeat(PlayerActor.MAX_HEALTH - player.health)
 	player_health_label.add_theme_color_override("font_color", Color("ff657c") if player.health == 1 else Color("edfaff"))
 	focus_wash.color.a = 0.10 if player.is_focusing else 0.0
@@ -967,9 +967,14 @@ func _on_sfx_finished(voice: AudioStreamPlayer) -> void:
 		voice.queue_free()
 
 func _current_gameplay_time_scale() -> float:
+	var scale := 1.0
+	if state == BattleState.PLAYING and is_instance_valid(player):
+		scale = player.simulation_scale
+		if player.is_focusing:
+			scale = minf(scale, TuningStore.FOCUS_TIME_SCALE)
 	if finisher_slow_remaining > 0.0:
-		return FINISHER_TIME_SCALE
-	return player.simulation_scale if state == BattleState.PLAYING and is_instance_valid(player) else 1.0
+		scale = minf(scale, FINISHER_TIME_SCALE)
+	return scale
 
 func _current_parry_time_scale() -> float:
 	return TuningStore.get_value("melee_parry_time_scale") if state == BattleState.PLAYING and parry_slow_remaining > 0.0 else 1.0

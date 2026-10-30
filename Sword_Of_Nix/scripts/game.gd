@@ -686,7 +686,12 @@ func _on_sfx_voice_finished(voice: AudioStreamPlayer) -> void:
 		voice.queue_free()
 
 func _current_gameplay_time_scale() -> float:
-	return player.simulation_scale if state == RunState.PLAYING and is_instance_valid(player) else 1.0
+	if state != RunState.PLAYING or not is_instance_valid(player):
+		return 1.0
+	var scale := player.simulation_scale
+	if player.is_focusing:
+		scale = minf(scale, TuningStore.FOCUS_TIME_SCALE)
+	return scale
 
 func _current_parry_time_scale() -> float:
 	return TuningStore.get_value("melee_parry_time_scale") if state == RunState.PLAYING and parry_slow_remaining > 0.0 else 1.0
@@ -784,7 +789,7 @@ func _update_hud() -> void:
 	I18n.set_formatted(enemies_label, "Enemies  %02d", _living_enemy_count())
 	timer_label.text = "%05.2f" % elapsed
 	focus_fill.size.x = 230.0 * player.focus_energy / 100.0
-	focus_text.text = "FOCUS ACTIVE" if player.is_focusing else ("FOCUS READY" if player.focus_cooldown_remaining <= 0.0 else "FOCUS %.1fs" % player.focus_cooldown_remaining)
+	focus_text.text = "FOCUS ACTIVE  %.1fs" % player.focus_duration_remaining if player.is_focusing else ("FOCUS READY" if player.focus_cooldown_remaining <= 0.0 else "FOCUS  %.1fs" % player.focus_cooldown_remaining)
 	health_text.text = "HP  " + "◆".repeat(player.health) + "◇".repeat(PlayerActor.MAX_HEALTH - player.health)
 	health_text.add_theme_color_override("font_color", Color("ff657c") if player.health == 1 else Color("edfaff"))
 	focus_wash.color.a = 0.12 if player.is_focusing else 0.0
@@ -901,7 +906,7 @@ func _build_hud() -> void:
 	controls_panel.size = Vector2(390, 104)
 	controls_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui.add_child(controls_panel)
-	controls_label = _hud_label("Controls\nMove A/D or Arrow Keys  •  Jump Space (2 jumps)\nDrop Through Platforms S/Down + Space  •  Directional Slash J/X\nStory F  •  Hold E: Focus (3s cooldown)  •  Focus Dash D+R  •  Restart Backspace  •  Pause ESC", 11, Color("a8bbc2"))
+	controls_label = _hud_label("Controls\nMove A/D or Arrow Keys  •  Jump Space (2 jumps)\nDrop Through Platforms S/Down + Space  •  Directional Slash J/X\nStory F  •  Press E: Focus (3s active / 10s cooldown)  •  Focus Dash D+R  •  Restart Backspace  •  Pause ESC", 11, Color("a8bbc2"))
 	controls_label.position = Vector2(38, 124)
 	controls_label.size = Vector2(370, 110)
 	controls_label.add_theme_constant_override("line_spacing", 2)

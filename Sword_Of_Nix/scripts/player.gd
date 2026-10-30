@@ -21,7 +21,8 @@ const DROP_THROUGH_SPEED := 90.0
 const MAX_JUMPS := 2
 const MAX_HEALTH := 3
 const DAMAGE_INVULNERABILITY := 0.9
-const FOCUS_COOLDOWN_SECONDS := 3.0
+const FOCUS_DURATION_SECONDS := 3.0
+const FOCUS_COOLDOWN_SECONDS := 10.0
 
 var alive := true
 var health := MAX_HEALTH
@@ -35,6 +36,7 @@ var dash_time := 0.0
 var dash_distance_remaining := 0.0
 var focus_energy := 100.0
 var focus_cooldown_remaining := 0.0
+var focus_duration_remaining := 0.0
 var is_focusing := false
 var animation_clock := 0.0
 var death_time := 0.0
@@ -75,18 +77,18 @@ func _physics_process(delta: float) -> void:
 	_apply_hurtbox_tuning()
 	damage_invulnerability = maxf(0.0, damage_invulnerability - delta)
 	focus_cooldown_remaining = maxf(0.0, focus_cooldown_remaining - delta)
+	focus_duration_remaining = maxf(0.0, focus_duration_remaining - delta)
 	if alive:
 		var focus_dash_held := Input.is_action_pressed("focus_dash") and Input.is_action_pressed("move_right")
 		if not focus_dash_held:
 			focus_dash_activated = false
-		var was_focusing := is_focusing
-		var focus_held := control_enabled and Input.is_action_pressed("focus")
-		if was_focusing and not focus_held:
+		if control_enabled and Input.is_action_just_pressed("focus") and focus_cooldown_remaining <= 0.0 and not is_focusing:
+			focus_duration_remaining = FOCUS_DURATION_SECONDS
 			focus_cooldown_remaining = FOCUS_COOLDOWN_SECONDS
-		is_focusing = focus_held and (was_focusing or focus_cooldown_remaining <= 0.0)
-		focus_energy = 100.0 * (1.0 - focus_cooldown_remaining / FOCUS_COOLDOWN_SECONDS) if not is_focusing else 100.0
+		is_focusing = control_enabled and focus_duration_remaining > 0.0
+		focus_energy = 100.0 * focus_duration_remaining / FOCUS_DURATION_SECONDS if is_focusing else 100.0 * (1.0 - focus_cooldown_remaining / FOCUS_COOLDOWN_SECONDS)
 	else:
-		is_focusing = false
+		cancel_focus()
 	_refresh_simulation_scale()
 	var step := delta * simulation_scale
 	_update_drop_through(step)
@@ -232,6 +234,7 @@ func _finish_slash_dash() -> void:
 func die() -> void:
 	if not alive:
 		return
+	cancel_focus()
 	alive = false
 	force_idle_visual = false
 	control_enabled = false
@@ -261,7 +264,7 @@ func take_damage(amount: int = 1, knockback: Vector2 = Vector2.ZERO) -> bool:
 func set_control_enabled(enabled: bool) -> void:
 	control_enabled = enabled
 	if not enabled:
-		is_focusing = false
+		cancel_focus()
 		dash_time = 0.0
 		dash_distance_remaining = 0.0
 		_cancel_drop_through()
@@ -294,9 +297,13 @@ func set_external_time_scale(value: float) -> void:
 	external_time_scale = clampf(value, 0.01, 1.0)
 	_refresh_simulation_scale()
 
+func cancel_focus() -> void:
+	focus_duration_remaining = 0.0
+	is_focusing = false
+	_refresh_simulation_scale()
+
 func _refresh_simulation_scale() -> void:
-	var focus_scale := TuningStore.FOCUS_TIME_SCALE if is_focusing else 1.0
-	simulation_scale = minf(focus_scale, external_time_scale)
+	simulation_scale = external_time_scale
 
 func set_forced_idle_visual(enabled: bool) -> void:
 	force_idle_visual = enabled

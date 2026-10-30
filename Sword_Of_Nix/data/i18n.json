@@ -98,7 +98,7 @@
   "ESC  //  返回标题画面": "ESC  //  Return to title",
   "已回退 %05.1f 秒  //  剩余 %04.2f 秒": "Rewound %05.1f s  //  %04.2f s remaining",
   "影": "YING",
-  "移动  A D / 方向键     跳跃  Space（最多二段跳）     下穿平台  S / ↓ + Space\n方向 + 斩击  J / X / 点击     专注  按住 E（3 秒冷却）\n剧情继续  F     重演  R     暂停  ESC     实时调参  F1 / P": "Move  A D / Arrows     Jump  Space (up to two jumps)     Drop  S / ↓ + Space\nAim + Slash  J / X / Click     Focus  Hold E (3s cooldown)\nContinue story  F     Replay  R     Pause  ESC     Live tuning  F1 / P",
+  "移动  A D / 方向键     跳跃  Space（最多二段跳）     下穿平台  S / ↓ + Space\n方向 + 斩击  J / X / 点击     专注  按住 E（3 秒冷却）\n剧情继续  F     重演  R     暂停  ESC     实时调参  F1 / P": "Move  A D / Arrows     Jump  Space (up to two jumps)     Drop  S / ↓ + Space\nAim + Slash  J / X / Click     Focus  Press E (3s active, 10s cooldown)\nContinue story  F     Replay  R     Pause  ESC     Live tuning  F1 / P",
   "剧情序章  //  从任务简报开始": "PROLOGUE  //  Start with the briefing",
   "首领测试  //  守门人": "BOSS CHALLENGE  //  The Warden",
   "按任意键  //  继续第一关": "Press any key  //  Continue to Stage 1",
@@ -179,7 +179,7 @@
   "计划失败  //  倒放中": "PLAN FAILED  //  Rewinding",
   "敌人  %02d": "ENEMIES  %02d",
   "任务": "MISSION",
-  "操作\n移动  A/D 或方向键   •   跳跃  Space（最多二段跳）\n下穿平台  S/↓ + Space   •   方向 + 斩击  J/X\n专注  按住 E（3 秒冷却）   •   剧情继续  F   •   重演  R   •   暂停  ESC   •   调参  F1/P": "CONTROLS\nMove  A/D or Arrows   •   Jump  Space (up to two jumps)\nDrop  S/↓ + Space   •   Aim + Slash  J/X\nFocus  Hold E (3s cooldown)   •   Continue story  F   •   Replay  R   •   Pause  ESC   •   Tuning  F1/P",
+  "操作\n移动  A/D 或方向键   •   跳跃  Space（最多二段跳）\n下穿平台  S/↓ + Space   •   方向 + 斩击  J/X\n专注  按住 E（3 秒冷却）   •   剧情继续  F   •   重演  R   •   暂停  ESC   •   调参  F1/P": "CONTROLS\nMove  A/D or Arrows   •   Jump  Space (up to two jumps)\nDrop  S/↓ + Space   •   Aim + Slash  J/X\nFocus  Press E (3s active, 10s cooldown)   •   Continue story  F   •   Replay  R   •   Pause  ESC   •   Tuning  F1/P",
   "语言 / Language": "Language / 语言",
   "跳过教学": "Skip tutorial",
   "未完待续……": "TO BE CONTINUED...",
@@ -275,6 +275,6 @@
   "执行委托\n影拔出刀。\n任务只剩最后一下。": "FULFILL THE CONTRACT\nYing draws his blade.\nOne final stroke will finish the job.",
   "……\n——喵。": "…\n—Meow.",
   "货物\n箱盖缓缓弹开。\n里面的东西正在发抖。": "THE CARGO\nThe lid slowly creaks open.\nSomething inside is trembling.",
-  "移动  A D / 方向键     跳跃  Space（最多二段跳）     下穿平台  S / ↓ + Space\n方向 + 斩击  J / X / 点击     专注  按住 E（3 秒冷却）\n剧情继续  F     重演  R     暂停  ESC": "Move  A D / Arrows     Jump  Space (up to two jumps)     Drop  S / ↓ + Space\nAim + Slash  J / X / Click     Focus  Hold E (3s cooldown)\nContinue story  F     Replay  R     Pause  ESC",
-  "操作\n移动  A/D 或方向键   •   跳跃  Space（最多二段跳）\n下穿平台  S/↓ + Space   •   方向 + 斩击  J/X\n专注  按住 E（3 秒冷却）   •   剧情继续  F   •   重演  R   •   暂停  ESC": "CONTROLS\nMove  A/D or Arrows   •   Jump  Space (up to two jumps)\nDrop  S/↓ + Space   •   Aim + Slash  J/X\nFocus  Hold E (3s cooldown)   •   Continue story  F   •   Replay  R   •   Pause  ESC"
+  "移动  A D / 方向键     跳跃  Space（最多二段跳）     下穿平台  S / ↓ + Space\n方向 + 斩击  J / X / 点击     专注  按住 E（3 秒冷却）\n剧情继续  F     重演  R     暂停  ESC": "Move  A D / Arrows     Jump  Space (up to two jumps)     Drop  S / ↓ + Space\nAim + Slash  J / X / Click     Focus  Press E (3s active, 10s cooldown)\nContinue story  F     Replay  R     Pause  ESC",
+  "操作\n移动  A/D 或方向键   •   跳跃  Space（最多二段跳）\n下穿平台  S/↓ + Space   •   方向 + 斩击  J/X\n专注  按住 E（3 秒冷却）   •   剧情继续  F   •   重演  R   •   暂停  ESC": "CONTROLS\nMove  A/D or Arrows   •   Jump  Space (up to two jumps)\nDrop  S/↓ + Space   •   Aim + Slash  J/X\nFocus  Press E (3s active, 10s cooldown)   •   Continue story  F   •   Replay  R   •   Pause  ESC"
 }

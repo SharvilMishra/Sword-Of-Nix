@@ -10,6 +10,8 @@ var last_screen_offsets: Array[float] = [0.0]
 var last_camera_center := Vector2(640.0, 360.0)
 var last_source_rect := Rect2(Vector2.ZERO, Vector2(1600.0, 900.0))
 var last_world_rect := Rect2(Vector2.ZERO, Vector2(1280.0, 720.0))
+var _last_draw_center := Vector2(INF, INF)
+var _last_draw_size := Vector2.ZERO
 
 func _ready() -> void:
 	z_index = -100
@@ -21,7 +23,12 @@ func setup(active_camera: Camera2D) -> void:
 	queue_redraw()
 
 func _process(_delta: float) -> void:
-	queue_redraw()
+	var center := get_rendered_camera_center()
+	var view_size := get_visible_world_size()
+	if center.distance_squared_to(_last_draw_center) > 0.01 or view_size != _last_draw_size:
+		_last_draw_center = center
+		_last_draw_size = view_size
+		queue_redraw()
 
 func get_rendered_camera_center() -> Vector2:
 	if is_instance_valid(camera):
@@ -71,3 +78,20 @@ func _draw() -> void:
 	last_source_rect = get_cover_source_rect(screen_size)
 	draw_texture_rect_region(ORIGINAL_SKYLINE, last_world_rect, last_source_rect, BACKGROUND_MODULATE)
 	draw_rect(last_world_rect, BACKGROUND_WASH, true)
+	# A low-intensity cyan haze lifts the skyline horizon without washing out
+	# the dark silhouettes or the foreground combat.
+	var haze_top := last_world_rect.position.y + visible_world_size.y * 0.50
+	var haze_bottom := last_world_rect.position.y + visible_world_size.y * 0.86
+	var haze := PackedVector2Array([
+		Vector2(last_world_rect.position.x, haze_top),
+		Vector2(last_world_rect.end.x, haze_top),
+		Vector2(last_world_rect.end.x, haze_bottom),
+		Vector2(last_world_rect.position.x, haze_bottom)
+	])
+	var haze_colors := PackedColorArray([
+		Color(0.04, 0.28, 0.38, 0.0),
+		Color(0.04, 0.28, 0.38, 0.0),
+		Color(0.04, 0.28, 0.38, 0.11),
+		Color(0.04, 0.28, 0.38, 0.11)
+	])
+	draw_polygon(haze, haze_colors)

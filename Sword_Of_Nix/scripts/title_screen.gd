@@ -194,7 +194,7 @@ func _build_title() -> void:
 	title_content.add_child(settings_button)
 	buttons.append(settings_button)
 
-	controls_hint = _label("MOVE  A / D     •     JUMP  SPACE ×2     •     SLASH  J / X\nFOCUS  HOLD E     •     DASH  D + R     •     STORY  F     •     PAUSE  ESC", 12, MUTED)
+	controls_hint = _label("MOVE  A / D     •     JUMP  SPACE ×2     •     SLASH  J / X\nFOCUS  PRESS E (3s ACTIVE / 10s COOLDOWN)     •     DASH  D + R     •     STORY  F     •     PAUSE  ESC", 12, MUTED)
 	controls_hint.name = "TitleControls"
 	controls_hint.add_theme_constant_override("line_spacing", 5)
 	controls_hint.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
@@ -289,7 +289,7 @@ func _build_settings() -> void:
 	_add_rule(column)
 	var controls_title := _label("FIELD CONTROLS", 14, CYAN)
 	column.add_child(controls_title)
-	var controls := _label("MOVE     A / D or Arrow Keys\nJUMP       Space  (up to two jumps)\nATTACK   J / X / Mouse Click\nFOCUS    Hold E (3s cooldown)       DASH  D + R\nSTORY     F       RESTART  Backspace       PAUSE   Esc", 14, MUTED)
+	var controls := _label("MOVE     A / D or Arrow Keys\nJUMP       Space  (up to two jumps)\nATTACK   J / X / Mouse Click\nFOCUS    Press E (3s active / 10s cooldown)       DASH  D + R\nSTORY     F       RESTART  Backspace       PAUSE   Esc", 14, MUTED)
 	controls.name = "SettingsControls"
 	controls.add_theme_constant_override("line_spacing", 5)
 	column.add_child(controls)
@@ -607,14 +607,16 @@ func _layout_title() -> void:
 	if title_content == null:
 		return
 	var viewport_size := get_viewport_rect().size
-	var compact := viewport_size.x < 850.0 or viewport_size.y < 560.0
-	var scale_factor := clampf(minf(viewport_size.y / 720.0, viewport_size.x / 900.0), 0.68, 1.0) if compact else clampf(viewport_size.y / 720.0, 0.82, 1.0)
+	var scale_factor := clampf(minf(viewport_size.y / 820.0, viewport_size.x / 1280.0), 0.50, 1.0)
 	title_content.scale = Vector2.ONE * scale_factor
-	title_content.position = Vector2(maxf(30.0, viewport_size.x * 0.065), maxf(36.0, viewport_size.y * 0.10))
-	title_content.size = Vector2(minf(500.0, viewport_size.x * 0.49), viewport_size.y * 0.90 / scale_factor)
+	title_content.position = Vector2(maxf(30.0, viewport_size.x * 0.065), maxf(28.0, viewport_size.y * 0.06))
+	title_content.size = Vector2(minf(500.0, viewport_size.x * 0.49) / scale_factor, viewport_size.y * 0.94 / scale_factor)
 	if controls_hint != null:
-		controls_hint.position = Vector2(maxf(30.0, viewport_size.x * 0.072), -70.0)
-		controls_hint.size = Vector2(minf(620.0, viewport_size.x * 0.51), 54.0)
+		var hint_width := minf(620.0, viewport_size.x * 0.51)
+		controls_hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+		controls_hint.position = Vector2(-hint_width - 30.0, -70.0)
+		controls_hint.size = Vector2(hint_width, 54.0)
+		controls_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	if settings_layer != null:
 		var panel := settings_layer.get_node_or_null("CenterContainer/SettingsPanel") as Control
 		if panel:

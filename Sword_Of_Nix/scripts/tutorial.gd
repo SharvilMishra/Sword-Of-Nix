@@ -371,7 +371,7 @@ func _update_tutorial_phase(delta: float) -> void:
 			_check_finale_completion()
 		TutorialPhase.EXIT_RUN:
 			if exit_run_started and is_instance_valid(player):
-				player.is_focusing = false
+				player.cancel_focus()
 				player.velocity.x = EXIT_SPEED
 				if player.global_position.x >= 1360.0:
 					exit_run_started = false
@@ -809,7 +809,7 @@ func _begin_tutorial_exit() -> void:
 	_reset_parry_feedback()
 	_apply_camera_distance()
 	player.set_control_enabled(false)
-	player.is_focusing = false
+	player.cancel_focus()
 	player.set_forced_idle_visual(true)
 	for shot in projectiles.duplicate():
 		if is_instance_valid(shot):
@@ -848,7 +848,7 @@ func _mark_tutorial_complete() -> void:
 	tutorial_phase = TutorialPhase.COMPLETE
 	state = RunState.COMPLETE
 	player.set_control_enabled(false)
-	player.is_focusing = false
+	player.cancel_focus()
 	player.focus_energy = 100.0
 	player.set_physics_process(false)
 
