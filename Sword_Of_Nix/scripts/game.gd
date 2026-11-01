@@ -102,6 +102,7 @@ var status_label: Label
 var hint_label: Label
 var controls_panel: ColorRect
 var controls_label: Label
+var focus_back: ColorRect
 var focus_fill: ColorRect
 var focus_text: Label
 var focus_wash: ColorRect
@@ -478,6 +479,8 @@ func _on_player_died() -> void:
 	_reset_parry_feedback()
 	_apply_camera_distance()
 	state = RunState.DEAD
+	if is_instance_valid(touch_input):
+		touch_input.call("set_combat_controls_visible", false)
 	death_clock = 0.0
 	_play_sfx(ENEMY_HIT_STREAM, -1.0, 0.018)
 	_add_screen_shake(9.0)
@@ -515,6 +518,8 @@ func _restart_room() -> void:
 	if is_instance_valid(projectile_explosions):
 		projectile_explosions.clear_effects()
 	_start_room()
+	if is_instance_valid(touch_input):
+		touch_input.call("set_combat_controls_visible", true)
 
 func _complete_run() -> void:
 	if state != RunState.PLAYING:
@@ -688,7 +693,7 @@ func _on_sfx_voice_finished(voice: AudioStreamPlayer) -> void:
 func _current_gameplay_time_scale() -> float:
 	if state != RunState.PLAYING or not is_instance_valid(player):
 		return 1.0
-	var scale := player.simulation_scale
+	var scale: float = player.simulation_scale
 	if player.is_focusing:
 		scale = minf(scale, TuningStore.FOCUS_TIME_SCALE)
 	return scale
@@ -811,6 +816,8 @@ func _on_pause_changed(paused: bool) -> void:
 	for voice in sfx_voices:
 		if is_instance_valid(voice):
 			voice.stream_paused = paused
+	if is_instance_valid(touch_input):
+		touch_input.call("set_combat_controls_visible", not paused and state == RunState.PLAYING)
 	if not paused and not entrance_transition_active and state == RunState.PLAYING and is_instance_valid(player) and player.alive:
 		player.set_control_enabled(true)
 
@@ -845,7 +852,7 @@ func _update_parry_sparks(delta: float) -> void:
 func _init_rain() -> void:
 	rain_rng.seed = 90210
 	rain_drops.clear()
-	for _index in range(360):
+	for _index in range(180 if OS.has_feature("mobile") else 360):
 		var depth := rain_rng.randf_range(0.15, 1.0)
 		var speed := lerpf(470.0, 1080.0, depth)
 		rain_drops.append({
@@ -901,7 +908,7 @@ func _build_hud() -> void:
 	enemies_label.size = Vector2(250, 30)
 	ui.add_child(enemies_label)
 	controls_panel = ColorRect.new()
-	controls_panel.color = Color(0.015, 0.035, 0.05, 0.72)
+	controls_panel.color = Color(0.015, 0.035, 0.05, 0.42)
 	controls_panel.position = Vector2(28, 116)
 	controls_panel.size = Vector2(390, 104)
 	controls_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -918,16 +925,16 @@ func _build_hud() -> void:
 	timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	ui.add_child(timer_label)
 
-	var focus_back := ColorRect.new()
+	focus_back = ColorRect.new()
 	focus_back.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	focus_back.position = Vector2(38, -61)
 	focus_back.size = Vector2(234, 10)
-	focus_back.color = Color("172c35")
+	focus_back.color = Color(0.09, 0.17, 0.21, 0.58)
 	ui.add_child(focus_back)
 	focus_fill = ColorRect.new()
 	focus_fill.position = Vector2(2, 2)
 	focus_fill.size = Vector2(230, 6)
-	focus_fill.color = Color("33e6ff")
+	focus_fill.color = Color(0.20, 0.90, 1.0, 0.82)
 	focus_back.add_child(focus_fill)
 	focus_text = _hud_label("Focus  100", 12, Color("8fb8c0"))
 	focus_text.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
@@ -1036,8 +1043,16 @@ func _on_viewport_changed() -> void:
 	if is_instance_valid(camera):
 		camera.limit_left = 0
 		camera.limit_right = int(WORLD_WIDTH)
+	var touch_layout := size.x < 1000.0 or OS.has_feature("mobile") or DisplayServer.is_touchscreen_available()
 	if hint_label:
-		hint_label.visible = size.x >= 1000.0
+		hint_label.visible = not touch_layout
+	if controls_panel:
+		controls_panel.visible = not touch_layout
+	if controls_label:
+		controls_label.visible = not touch_layout
+	if focus_back and focus_text:
+		focus_back.position = Vector2((size.x - focus_back.size.x) * 0.5, -18.0) if touch_layout else Vector2(38.0, -61.0)
+		focus_text.position = Vector2((size.x - focus_text.size.x) * 0.5, -46.0) if touch_layout else Vector2(38.0, -88.0)
 
 func _hud_label(text_value: String, font_size: int, color: Color) -> Label:
 	var label := Label.new()

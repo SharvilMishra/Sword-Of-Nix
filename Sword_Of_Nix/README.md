@@ -11,7 +11,7 @@
 - Press **E** to activate Focus: you move normally while the world slows for 3 seconds. The 10-second cooldown starts on activation.
 - Three player HP with brief damage protection and clear health feedback.
 - Story prologue, rooftop mission, multi-floor hideout, Warden battle, and an ending sequence.
-- Local level progression, replay access for cleared levels, and a cyberpunk-paintstroke title menu.
+- Local level progression, an all-level select menu, and a cyberpunk-paintstroke title menu.
 - Separate music for the menu and regular stages versus story and boss battles.
 
 ## Play
@@ -46,11 +46,19 @@ These commands require the Godot executable to be available as godot in your ter
 | Hold D + R | Focus Dash and slash forward |
 | F | Continue story dialogue |
 | Backspace | Restart the current level or room |
+| Touchscreen | Move backward/forward on the left; jump, Skill, and slash on the right |
+| Touchscreen top-right | Continue story and pause |
 | Esc | Open the battle menu: Leave Battle, Resume, or Restart |
+
+## Android build
+
+The project uses landscape orientation on phones and shows translucent touch controls during play. The left side handles backward/forward movement; jump, Skill, and slash are on the right. Skill remains a tap-to-activate ability: the world slows for 3 seconds, then the 10-second cooldown begins.
+
+An Android export preset is included. In Godot 4.7.2, open **Project > Export**, select **Android**, and export a debug APK to `dist/SwordOfNix-android-debug.apk`. Android export requires matching Godot export templates, JDK 17, and the Android SDK configured in Editor Settings. The debug build is for personal device testing; public release builds should use a release keystore that you control.
 
 ## Progress and saves
 
-Progress is saved locally on your device through Godot's user:// save location. Clearing a stage unlocks the next one. The title screen includes **Replay Cleared Levels** so you can revisit completed stages. Replaying a level does not erase your existing unlocks or completion records. Saves are local; the game does not require an account or online service.
+Progress is saved locally on your device through Godot's user:// save location. Clearing a stage unlocks the next one. The title screen includes **Level Select**, which lists every campaign stage and marks it cleared, available, or locked. Cleared and unlocked stages can be replayed without erasing progression. Saves are local; the game does not require an account or online service.
 
 ## Music
 

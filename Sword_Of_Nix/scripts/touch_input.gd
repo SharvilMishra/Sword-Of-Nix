@@ -16,7 +16,7 @@ func _ready() -> void:
 	_make_button("aim_down", "▼", Control.PRESET_BOTTOM_LEFT, Vector2(190, -98), Vector2(64, 64))
 	_make_button("aim_up", "▲", Control.PRESET_BOTTOM_LEFT, Vector2(190, -174), Vector2(64, 64))
 	_make_button("jump", "↑", Control.PRESET_BOTTOM_RIGHT, Vector2(-272, -98), Vector2(64, 64))
-	_make_button("focus", "FOCUS", Control.PRESET_BOTTOM_RIGHT, Vector2(-196, -98), Vector2(72, 64))
+	_make_button("focus", "SKILL", Control.PRESET_BOTTOM_RIGHT, Vector2(-196, -98), Vector2(72, 64))
 	_make_button("attack", "SLASH", Control.PRESET_BOTTOM_RIGHT, Vector2(-112, -108), Vector2(86, 78))
 	story_continue_button = _make_button("continue_story", "NEXT", Control.PRESET_TOP_RIGHT, Vector2(-178, 24), Vector2(96, 42))
 	story_continue_button.visible = false
@@ -27,6 +27,7 @@ func _ready() -> void:
 func _make_button(action: String, text_value: String, preset: int, offset: Vector2, button_size: Vector2) -> Button:
 	var button := Button.new()
 	button.text = text_value
+	button.tooltip_text = {"move_left": "Move backward", "move_right": "Move forward", "aim_down": "Aim down / drop through", "aim_up": "Aim up", "jump": "Jump (up to two times)", "focus": "Skill: slow the world for 3 seconds", "attack": "Attack", "pause_game": "Pause"}.get(action, text_value)
 	button.set_anchors_preset(preset)
 	button.position = offset
 	button.size = button_size
@@ -36,12 +37,12 @@ func _make_button(action: String, text_value: String, preset: int, offset: Vecto
 	button.add_theme_color_override("font_color", Color("bfeef4"))
 	button.add_theme_color_override("font_pressed_color", Color("061319"))
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.02, 0.08, 0.11, 0.58)
-	normal.border_color = Color(0.25, 0.82, 0.9, 0.46)
+	normal.bg_color = Color(0.02, 0.08, 0.11, 0.40)
+	normal.border_color = Color(0.25, 0.82, 0.9, 0.62)
 	normal.set_border_width_all(1)
 	normal.set_corner_radius_all(12)
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.25, 0.9, 1.0, 0.84)
+	pressed.bg_color = Color(0.25, 0.9, 1.0, 0.78)
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", normal)
 	button.add_theme_stylebox_override("pressed", pressed)

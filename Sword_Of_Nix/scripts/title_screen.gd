@@ -72,6 +72,8 @@ var fullscreen_toggle: CheckButton
 var character_status: Label
 var character_back_button: Button
 var level_select_back_button: Button
+var level_select_list: VBoxContainer
+var level_select_buttons: Array[Button] = []
 var title_music: AudioStreamPlayer
 var controls_hint: Label
 
@@ -170,7 +172,7 @@ func _build_title() -> void:
 	title_content.add_child(story_button)
 	buttons.append(story_button)
 
-	var replay_button := _menu_button("03   /   REPLAY CLEARED LEVELS")
+	var replay_button := _menu_button("03   /   LEVEL SELECT")
 	replay_button.name = "ReplayLevelsButton"
 	replay_button.pressed.connect(_open_level_select)
 	title_content.add_child(replay_button)
@@ -415,13 +417,14 @@ func _build_level_select() -> void:
 	level_select_layer.add_child(dim)
 
 	var center := CenterContainer.new()
+	center.name = "CenterContainer"
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	level_select_layer.add_child(center)
 
 	var panel := PanelContainer.new()
 	panel.name = "LevelSelectPanel"
-	panel.custom_minimum_size = Vector2(540, 420)
+	panel.custom_minimum_size = Vector2(540, 560)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.012, 0.025, 0.048, 0.99)
 	style.border_color = Color(0.08, 0.68, 0.9, 0.92)
@@ -435,22 +438,44 @@ func _build_level_select() -> void:
 	center.add_child(panel)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
+	column.name = "LevelSelectContent"
+	column.add_theme_constant_override("separation", 10)
 	panel.add_child(column)
-	column.add_child(_label("REPLAY CLEARED LEVELS", 27, CYAN))
-	column.add_child(_label("Choose any stage you have already completed.", 13, MUTED))
+	column.add_child(_label("SELECT A LEVEL", 27, CYAN))
+	column.add_child(_label("All campaign stages • cleared and unlocked levels can be replayed.", 13, MUTED))
 	_add_rule(column)
 
+	var scroll := ScrollContainer.new()
+	scroll.name = "LevelListScroll"
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size.y = 320.0
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	column.add_child(scroll)
+
+	level_select_list = VBoxContainer.new()
+	level_select_list.name = "LevelList"
+	level_select_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	level_select_list.add_theme_constant_override("separation", 7)
+	scroll.add_child(level_select_list)
+	level_select_buttons.clear()
+
 	var completed: Array = SaveStore.get_completed_levels()
-	if completed.is_empty():
-		column.add_child(_label("No cleared levels yet. Complete a level to unlock replay.", 14, PAPER))
-	else:
-		for level_index in completed:
-			var safe_index := int(level_index)
-			var replay := _menu_button("REPLAY   /   " + SaveStore.LEVEL_NAMES[safe_index].to_upper(), true)
-			replay.name = "ReplayLevel%dButton" % safe_index
-			replay.pressed.connect(_replay_saved_level.bind(safe_index))
-			column.add_child(replay)
+	var highest_unlocked := SaveStore.get_highest_unlocked_level()
+	for level_index in range(SaveStore.LEVEL_NAMES.size()):
+		var is_cleared := completed.has(level_index)
+		var is_unlocked := level_index <= highest_unlocked
+		var state_text := "CLEARED" if is_cleared else ("AVAILABLE" if is_unlocked else "LOCKED")
+		var level_button := _menu_button("%02d   /   %s     ·  %s" % [level_index + 1, SaveStore.LEVEL_NAMES[level_index].to_upper(), state_text], is_unlocked)
+		level_button.name = "Level%dButton" % level_index
+		level_button.custom_minimum_size.y = 48.0
+		level_button.disabled = not is_unlocked
+		if is_unlocked:
+			level_button.pressed.connect(_replay_saved_level.bind(level_index))
+		else:
+			level_button.tooltip_text = "Clear earlier stages to unlock this level."
+		level_select_list.add_child(level_button)
+		level_select_buttons.append(level_button)
 
 	level_select_back_button = _menu_button("BACK TO TITLE")
 	level_select_back_button.name = "LevelSelectBackButton"
@@ -462,16 +487,11 @@ func _open_level_select() -> void:
 	settings_layer.visible = false
 	character_layer.visible = false
 	level_select_layer.visible = true
-	var first_replay: Button
-	for child in level_select_layer.get_node("CenterContainer/LevelSelectPanel/VBoxContainer").get_children():
-		if child is Button and child.name.begins_with("ReplayLevel"):
-			first_replay = child
-			break
-	if first_replay:
-		first_replay.grab_focus()
-	else:
-		level_select_back_button.grab_focus()
-
+	for level_button in level_select_buttons:
+		if not level_button.disabled:
+			level_button.grab_focus()
+			return
+	level_select_back_button.grab_focus()
 
 func _close_level_select() -> void:
 	level_select_layer.visible = false
@@ -481,7 +501,7 @@ func _close_level_select() -> void:
 
 
 func _replay_saved_level(level_index: int) -> void:
-	if level_index < 0 or level_index >= SaveStore.LEVEL_SCENES.size():
+	if level_index < 0 or level_index >= SaveStore.LEVEL_SCENES.size() or level_index > SaveStore.get_highest_unlocked_level():
 		return
 	_transition_to_scene(SaveStore.LEVEL_SCENES[level_index], "REPLAYING " + SaveStore.LEVEL_NAMES[level_index].to_upper() + "…")
 

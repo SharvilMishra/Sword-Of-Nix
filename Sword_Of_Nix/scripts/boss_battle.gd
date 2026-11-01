@@ -104,6 +104,7 @@ var player_health_label: Label
 var attack_label: Label
 var status_label: Label
 var timer_label: Label
+var focus_back: ColorRect
 var focus_fill: ColorRect
 var focus_text: Label
 var focus_wash: ColorRect
@@ -608,6 +609,8 @@ func _on_player_died() -> void:
 	_reset_parry_feedback()
 	_apply_camera_distance()
 	state = BattleState.DEAD
+	if is_instance_valid(touch_input):
+		touch_input.call("set_combat_controls_visible", false)
 	death_clock = 0.0
 	_play_sfx(HIT_STREAM, -1.0, 0.018)
 	_add_screen_shake(10.0)
@@ -645,6 +648,8 @@ func _restart_battle() -> void:
 	if is_instance_valid(projectile_explosions):
 		projectile_explosions.clear_effects()
 	_start_battle(false)
+	if is_instance_valid(touch_input):
+		touch_input.call("set_combat_controls_visible", true)
 
 func _attack_hitbox_overlaps_rect(target_rect: Rect2, origin: Vector2, direction: Vector2) -> bool:
 	var forward := direction.normalized()
@@ -740,7 +745,7 @@ func _build_hud() -> void:
 	boss_bar.name = "BossHealthBack"
 	boss_bar.position = Vector2(392.0, 104.0)
 	boss_bar.size = Vector2(504.0, 16.0)
-	boss_bar.color = Color(0.035, 0.025, 0.035, 0.92)
+	boss_bar.color = Color(0.035, 0.025, 0.035, 0.62)
 	ui.add_child(boss_bar)
 	boss_fill = ColorRect.new()
 	boss_fill.name = "BossHealthFill"
@@ -764,16 +769,16 @@ func _build_hud() -> void:
 	attack_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ui.add_child(attack_label)
 
-	var focus_back := ColorRect.new()
+	focus_back = ColorRect.new()
 	focus_back.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	focus_back.position = Vector2(38.0, -61.0)
 	focus_back.size = Vector2(234.0, 10.0)
-	focus_back.color = Color("172c35")
+	focus_back.color = Color(0.09, 0.17, 0.21, 0.58)
 	ui.add_child(focus_back)
 	focus_fill = ColorRect.new()
 	focus_fill.position = Vector2(2.0, 2.0)
 	focus_fill.size = Vector2(230.0, 6.0)
-	focus_fill.color = Color("33e6ff")
+	focus_fill.color = Color(0.20, 0.90, 1.0, 0.82)
 	focus_back.add_child(focus_fill)
 	focus_text = _hud_label("Focus  100", 12, Color("8fb8c0"))
 	focus_text.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
@@ -1075,7 +1080,7 @@ func _update_screen_effects(delta: float) -> void:
 
 func _init_rain() -> void:
 	rain_rng.seed = 424242
-	for _index in range(260):
+	for _index in range(128 if OS.has_feature("mobile") else 260):
 		var depth := rain_rng.randf_range(0.15, 1.0)
 		rain_drops.append({
 			"position": Vector2(rain_rng.randf_range(0.0, ARENA_WIDTH), rain_rng.randf_range(-80.0, FLOOR_Y)),
@@ -1144,6 +1149,8 @@ func _on_pause_changed(paused_value: bool) -> void:
 	for voice in sfx_voices:
 		if is_instance_valid(voice):
 			voice.stream_paused = paused_value
+	if is_instance_valid(touch_input):
+		touch_input.call("set_combat_controls_visible", not paused_value and state == BattleState.PLAYING)
 
 func _add_screen_shake(amount: float) -> void:
 	shake_strength = maxf(shake_strength, amount)
@@ -1159,6 +1166,11 @@ func _on_viewport_changed() -> void:
 	if is_instance_valid(camera):
 		camera.limit_left = 0
 		camera.limit_right = int(ARENA_WIDTH)
+	var size := get_viewport_rect().size
+	var touch_layout := size.x < 1000.0 or OS.has_feature("mobile") or DisplayServer.is_touchscreen_available()
+	if focus_back and focus_text:
+		focus_back.position = Vector2((size.x - focus_back.size.x) * 0.5, -18.0) if touch_layout else Vector2(38.0, -61.0)
+		focus_text.position = Vector2((size.x - focus_text.size.x) * 0.5, -46.0) if touch_layout else Vector2(38.0, -88.0)
 
 func _hud_label(text_value: String, font_size: int, color: Color) -> Label:
 	var label := Label.new()
