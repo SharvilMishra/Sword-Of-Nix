@@ -627,16 +627,36 @@ func _layout_title() -> void:
 	if title_content == null:
 		return
 	var viewport_size := get_viewport_rect().size
+	var touch_layout := viewport_size.x < 1000.0 or OS.has_feature("mobile") or DisplayServer.is_touchscreen_available()
 	var scale_factor := clampf(minf(viewport_size.y / 820.0, viewport_size.x / 1280.0), 0.50, 1.0)
+	if touch_layout:
+		scale_factor = maxf(scale_factor, 0.96)
+	title_content.add_theme_constant_override("separation", 5 if touch_layout else 9)
 	title_content.scale = Vector2.ONE * scale_factor
 	title_content.position = Vector2(maxf(30.0, viewport_size.x * 0.065), maxf(28.0, viewport_size.y * 0.06))
 	title_content.size = Vector2(minf(500.0, viewport_size.x * 0.49) / scale_factor, viewport_size.y * 0.94 / scale_factor)
+	for button in buttons:
+		button.custom_minimum_size.y = (64.0 if button.text.contains("/") else 54.0) if touch_layout else (56.0 if button.text.contains("/") else 46.0)
+		button.add_theme_font_size_override("font_size", 17 if touch_layout else 15)
+		if touch_layout:
+			for child in button.get_children():
+				if child is Label:
+					child.size.y = button.custom_minimum_size.y
+					child.add_theme_font_size_override("font_size", 17 if child.text.strip_edges() != "/" else 18)
 	if controls_hint != null:
+		controls_hint.text = "MOVE / JUMP     •     DODGE     •     SKILL     •     SLASH" if touch_layout else "MOVE  A / D     •     JUMP  SPACE ×2     •     SLASH  J / X\nFOCUS  PRESS E (3s ACTIVE / 10s COOLDOWN)     •     DASH  D + R     •     STORY  F     •     PAUSE  ESC"
+		controls_hint.add_theme_font_size_override("font_size", 16 if touch_layout else 12)
 		var hint_width := minf(620.0, viewport_size.x * 0.51)
 		controls_hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		controls_hint.position = Vector2(-hint_width - 30.0, -70.0)
-		controls_hint.size = Vector2(hint_width, 54.0)
+		controls_hint.position = Vector2(-hint_width - 30.0, -44.0 if touch_layout else -70.0)
+		controls_hint.size = Vector2(hint_width, 36.0 if touch_layout else 54.0)
 		controls_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		# Touch players get larger on-screen controls in gameplay; keep the title clean.
+		controls_hint.visible = not touch_layout
+	var settings_controls := get_node_or_null("SettingsOverlay/CenterContainer/SettingsPanel/VBoxContainer/SettingsControls") as Label
+	if settings_controls:
+		settings_controls.text = "MOVE  ◀ / ▶     JUMP  ▲  (2×)\nDODGE     SKILL     SLASH" if touch_layout else "MOVE     A / D or Arrow Keys\nJUMP       Space  (up to two jumps)\nATTACK   J / X / Mouse Click\nFOCUS    Press E (3s active / 10s cooldown)       DASH  D + R\nSTORY     F       RESTART  Backspace       PAUSE   Esc"
+		settings_controls.add_theme_font_size_override("font_size", 16 if touch_layout else 14)
 	if settings_layer != null:
 		var panel := settings_layer.get_node_or_null("CenterContainer/SettingsPanel") as Control
 		if panel:

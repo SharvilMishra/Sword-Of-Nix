@@ -626,6 +626,12 @@ func _pause_for_instruction(prompt: String, detail: String, required_action: Str
 	tutorial_paused = true
 	instruction_action = required_action
 	instruction_input_armed = false
+	if _is_touch_layout():
+		if required_action == &"attack":
+			prompt = "Tap SLASH"
+		elif required_action == &"focus_dash":
+			prompt = "Tap DODGE"
+			detail = "Tap DODGE to dash and slash through the barrage, parry four bullets, and clear the gunner squad."
 	instruction_phase_label.text = "Breach Tutorial"
 	instruction_label.text = prompt
 	instruction_detail_label.text = detail
@@ -637,6 +643,10 @@ func _pause_for_instruction(prompt: String, detail: String, required_action: Str
 		bgm_player.pitch_scale = 0.72
 	if is_instance_valid(rain_audio_player):
 		rain_audio_player.pitch_scale = 0.72
+
+func _is_touch_layout() -> bool:
+	var viewport_size := get_viewport().get_visible_rect().size
+	return viewport_size.x < 1000.0 or OS.has_feature("mobile") or DisplayServer.is_touchscreen_available()
 
 func _update_instruction_input() -> void:
 	if not instruction_input_armed:
