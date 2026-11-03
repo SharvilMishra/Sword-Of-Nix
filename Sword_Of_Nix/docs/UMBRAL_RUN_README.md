@@ -8,7 +8,7 @@ Breach a rain-lit rooftop, climb through the Akai gang’s five-floor power-stat
 
 The game is offline. It has no account, server, network play or online leaderboard. Regular rooftop/interior gameplay uses `BGM SONG/Headlights_on_Wet_Pavement.mp3`; the story prologue and Warden battle use `BGM SONG/Steel_Against_the_Horizon.mp3`. The runtime UI and story dialogue are English. The supplied Chinese story remains preserved at `docs/source-game/data/story_source_zh.xml`, and the English translation catalog remains in `data/i18n.json`. The original source title/branding is replaced by **Sword Of Nix** in the game menu, Godot project, browser title, loading screen and share metadata. Source credits, notices, asset provenance and licensing records are retained.
 
-The title menu uses the supplied rain-lit city artwork with a cyan paintstroke treatment and distinct Play, Story Prologue, Warden Challenge, Character & Gear and Settings choices. Character & Gear shows the Blue Wraith concept and its full katana, armor and field kit. Settings include saved master volume, fullscreen display and a quick control reference.
+The title menu uses the supplied rain-lit city artwork with a cyan paintstroke treatment and distinct Play, Story Prologue, Warden Challenge, Character & Gear and Settings choices. Character & Gear offers Klint, the cobalt-armored swordsman, and Quel, the separate white-armored swordswoman, with their katana, armor and field kits. Settings include saved master volume, fullscreen display and a quick control reference.
 
 ## Controls
 

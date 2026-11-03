@@ -2,7 +2,7 @@ class_name NeonSaveStore
 extends RefCounted
 
 const SAVE_PATH := "user://zero_hour_save.json"
-const VERSION := 3
+const VERSION := 4
 const LEVEL_NAMES: Array[String] = ["Story Prologue", "Nix City Rooftop", "Akai Hideout", "Warden Battle"]
 const LEVEL_SCENES: Array[String] = [
 	"res://scenes/tutorial.tscn",
@@ -54,6 +54,16 @@ static func get_completed_levels() -> Array:
 static func get_current_level_name() -> String:
 	return LEVEL_NAMES[clampi(get_current_level(), 0, LEVEL_NAMES.size() - 1)]
 
+static func get_player_character() -> String:
+	return str(_load_data().get("player_character", "blue_wraith"))
+
+static func set_player_character(character_id: String) -> void:
+	if character_id not in ["blue_wraith", "white_wraith"]:
+		return
+	var data := _load_data()
+	data["player_character"] = character_id
+	_save_data(data)
+
 static func get_continue_scene_path() -> String:
 	return LEVEL_SCENES[clampi(get_current_level(), 0, LEVEL_SCENES.size() - 1)]
 
@@ -91,7 +101,8 @@ static func _default_data() -> Dictionary:
 		"tutorial_complete": false,
 		"current_level": 0,
 		"unlocked_level": 0,
-		"completed_levels": []
+		"completed_levels": [],
+		"player_character": "blue_wraith"
 	}
 
 static func _load_data() -> Dictionary:
@@ -104,7 +115,7 @@ static func _load_data() -> Dictionary:
 	if not parsed is Dictionary:
 		return _default_data()
 	var stored_version := int(parsed.get("version", 0))
-	if stored_version == VERSION:
+	if stored_version == VERSION or stored_version == 3:
 		var tutorial_complete := bool(parsed.get("tutorial_complete", false))
 		var completed: Array = []
 		var raw_completed = parsed.get("completed_levels", [])
@@ -124,7 +135,8 @@ static func _load_data() -> Dictionary:
 			"tutorial_complete": tutorial_complete,
 			"current_level": clampi(int(parsed.get("current_level", 0)), 0, unlocked),
 			"unlocked_level": unlocked,
-			"completed_levels": completed
+			"completed_levels": completed,
+			"player_character": str(parsed.get("player_character", "blue_wraith")) if str(parsed.get("player_character", "blue_wraith")) in ["blue_wraith", "white_wraith"] else "blue_wraith"
 		}
 	if stored_version == 2:
 		var old_tutorial_complete := bool(parsed.get("tutorial_complete", false))

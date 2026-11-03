@@ -2,7 +2,7 @@
 
 *A city in shadow. One blade against the night.*
 
-**Sword Of Nix** is a single-player 2D cyberpunk action-platformer made with Godot 4.7. Take the role of the Blue Wraith, a masked swordsman cutting through rain-soaked Nix City. Fight across the rooftops, break into the Akai Hideout, and face the Warden.
+**Sword Of Nix** is a single-player 2D cyberpunk action-platformer made with Godot 4.7. Choose Klint, a cobalt-armored masked swordsman, or Quel, a white-armored katana wielder, and fight through rain-soaked Nix City, the Akai Hideout, and the Warden's arena.
 
 ## Features
 

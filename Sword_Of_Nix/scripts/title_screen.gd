@@ -3,6 +3,8 @@ extends Control
 const TITLE_ART: Texture2D = preload("res://assets/world/title_splash.webp")
 const TITLE_BGM: AudioStream = preload("res://BGM SONG/Headlights_on_Wet_Pavement.mp3")
 const HERO_CONCEPT: Texture2D = preload("res://assets/characters/blue_wraith/idle/idle_00.webp")
+const AnimFrames = preload("res://scripts/animation_frames.gd")
+const WHITE_WRAITH_KEY_SHADER: Shader = preload("res://shaders/white_wraith_key.gdshader")
 const MENU_FONT: Font = preload("res://assets/template/fonts/ui_regular.tres")
 const SaveStore = preload("res://scripts/save_store.gd")
 const TUTORIAL_SCENE := "res://scenes/tutorial.tscn"
@@ -71,11 +73,28 @@ var master_slider: HSlider
 var fullscreen_toggle: CheckButton
 var character_status: Label
 var character_back_button: Button
+var character_portrait: TextureRect
+var character_name_label: Label
+var character_role_label: Label
+var character_description_label: Label
+var character_select_buttons: Array[Button] = []
+var character_gear_rows: Array[Dictionary] = []
+var blade_gear_detail: Label
 var level_select_back_button: Button
 var level_select_list: VBoxContainer
 var level_select_buttons: Array[Button] = []
 var title_music: AudioStreamPlayer
 var controls_hint: Label
+var mobile_menu: Control
+var mobile_city_label: Label
+var mobile_game_title: Label
+var mobile_tagline: Label
+var mobile_actions_scroll: ScrollContainer
+var mobile_actions_list: VBoxContainer
+var mobile_more_button: Button
+var mobile_more_panel: PanelContainer
+var mobile_more_list: VBoxContainer
+var mobile_title_mode := false
 
 
 func _ready() -> void:
@@ -184,7 +203,7 @@ func _build_title() -> void:
 	title_content.add_child(boss_button)
 	buttons.append(boss_button)
 
-	var character_button := _menu_button("05   /   CHARACTER & GEAR")
+	var character_button := _menu_button("05   /   PROFILE & GEAR")
 	character_button.name = "CharacterButton"
 	character_button.pressed.connect(_open_character)
 	title_content.add_child(character_button)
@@ -214,6 +233,7 @@ func _build_title() -> void:
 	_build_settings()
 	_build_character_profile()
 	_build_level_select()
+	_build_mobile_title_menu()
 
 	fade_layer = ColorRect.new()
 	fade_layer.name = "TitleFade"
@@ -221,6 +241,126 @@ func _build_title() -> void:
 	fade_layer.color = Color("02070d")
 	fade_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(fade_layer)
+
+
+func _build_mobile_title_menu() -> void:
+	mobile_menu = Control.new()
+	mobile_menu.name = "MobileTitleMenu"
+	mobile_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mobile_menu.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mobile_menu.visible = false
+	add_child(mobile_menu)
+
+	var left_wash := ColorRect.new()
+	left_wash.name = "MobileMenuWash"
+	left_wash.anchor_right = 0.64
+	left_wash.anchor_bottom = 1.0
+	left_wash.color = Color(0.004, 0.012, 0.026, 0.58)
+	left_wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mobile_menu.add_child(left_wash)
+
+	mobile_city_label = _label("NIX CITY    /    DISTRICT 09", 14, CYAN)
+	mobile_city_label.name = "MobileCityLabel"
+	mobile_menu.add_child(mobile_city_label)
+	mobile_game_title = _label("SWORD OF NIX", 58, PAPER)
+	mobile_game_title.name = "MobileGameTitle"
+	mobile_game_title.add_theme_constant_override("outline_size", 5)
+	mobile_game_title.add_theme_color_override("font_outline_color", Color(0.0, 0.10, 0.16, 0.9))
+	mobile_menu.add_child(mobile_game_title)
+	mobile_tagline = _label("A city in shadow. One blade against the night.", 15, MUTED)
+	mobile_tagline.name = "MobileTagline"
+	mobile_tagline.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	mobile_menu.add_child(mobile_tagline)
+	var divider := ColorRect.new()
+	divider.name = "MobileMenuDivider"
+	divider.color = Color(0.18, 0.83, 0.95, 0.78)
+	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mobile_menu.add_child(divider)
+
+	mobile_actions_scroll = ScrollContainer.new()
+	mobile_actions_scroll.name = "MobileMainActionsScroll"
+	mobile_actions_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	mobile_actions_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mobile_menu.add_child(mobile_actions_scroll)
+	mobile_actions_list = VBoxContainer.new()
+	mobile_actions_list.name = "MobileMainActions"
+	mobile_actions_list.add_theme_constant_override("separation", 11)
+	mobile_actions_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mobile_actions_scroll.add_child(mobile_actions_list)
+
+	mobile_more_button = Button.new()
+	mobile_more_button.name = "MobileMoreButton"
+	mobile_more_button.text = "⋮"
+	mobile_more_button.tooltip_text = "Settings and profile"
+	mobile_more_button.focus_mode = Control.FOCUS_NONE
+	mobile_more_button.add_theme_font_size_override("font_size", 38)
+	mobile_more_button.add_theme_color_override("font_color", PAPER)
+	var more_style := StyleBoxFlat.new()
+	more_style.bg_color = Color(0.008, 0.045, 0.07, 0.82)
+	more_style.border_color = Color(0.18, 0.83, 0.95, 0.9)
+	more_style.set_border_width_all(2)
+	more_style.set_corner_radius_all(12)
+	mobile_more_button.add_theme_stylebox_override("normal", more_style)
+	mobile_more_button.add_theme_stylebox_override("hover", more_style)
+	var more_pressed := more_style.duplicate() as StyleBoxFlat
+	more_pressed.bg_color = Color(0.08, 0.68, 0.78, 0.92)
+	mobile_more_button.add_theme_stylebox_override("pressed", more_pressed)
+	mobile_more_button.pressed.connect(_toggle_mobile_more_menu)
+	mobile_menu.add_child(mobile_more_button)
+
+	mobile_more_panel = PanelContainer.new()
+	mobile_more_panel.name = "MobileMorePanel"
+	mobile_more_panel.visible = false
+	var popup_style := StyleBoxFlat.new()
+	popup_style.bg_color = Color(0.008, 0.025, 0.045, 0.97)
+	popup_style.border_color = Color(0.18, 0.83, 0.95, 0.94)
+	popup_style.set_border_width_all(2)
+	popup_style.set_corner_radius_all(8)
+	popup_style.content_margin_left = 10
+	popup_style.content_margin_right = 10
+	popup_style.content_margin_top = 10
+	popup_style.content_margin_bottom = 10
+	mobile_more_panel.add_theme_stylebox_override("panel", popup_style)
+	mobile_menu.add_child(mobile_more_panel)
+	mobile_more_list = VBoxContainer.new()
+	mobile_more_list.name = "MobileMoreActions"
+	mobile_more_list.add_theme_constant_override("separation", 8)
+	mobile_more_panel.add_child(mobile_more_list)
+
+func _fit_mobile_menu_button(button: Button) -> void:
+	for child in button.get_children():
+		if child is Label:
+			child.size.y = button.custom_minimum_size.y
+			if child.text.strip_edges() not in ["/", "01", "02", "03", "04", "05", "06"]:
+				child.position.x = 112.0
+				child.size.x = maxf(120.0, button.custom_minimum_size.x - 126.0)
+				child.add_theme_font_size_override("font_size", 18)
+			else:
+				child.add_theme_font_size_override("font_size", 16)
+
+
+func _set_mobile_title_mode(touch_layout: bool) -> void:
+	if touch_layout != mobile_title_mode:
+		if touch_layout:
+			for index in range(buttons.size()):
+				var button := buttons[index]
+				button.reparent(mobile_actions_list if index < 4 else mobile_more_list)
+		else:
+			mobile_more_panel.visible = false
+			var divider := title_content.get_node_or_null("MenuDivider")
+			var insert_at := divider.get_index() + 1 if divider else title_content.get_child_count()
+			for index in range(buttons.size()):
+				buttons[index].reparent(title_content)
+				title_content.move_child(buttons[index], mini(insert_at + index, title_content.get_child_count() - 1))
+		mobile_title_mode = touch_layout
+	title_content.visible = not touch_layout
+	mobile_menu.visible = touch_layout and not is_starting and not settings_layer.visible and not character_layer.visible and not level_select_layer.visible
+
+
+func _toggle_mobile_more_menu() -> void:
+	if not is_instance_valid(mobile_more_panel):
+		return
+	mobile_more_panel.visible = not mobile_more_panel.visible
 
 
 func _build_settings() -> void:
@@ -361,31 +501,50 @@ func _build_character_profile() -> void:
 	portrait_style.set_border_width_all(1)
 	portrait_frame.add_theme_stylebox_override("panel", portrait_style)
 	content.add_child(portrait_frame)
-	var portrait := TextureRect.new()
-	portrait.name = "BlueHeroConcept"
-	portrait.texture = HERO_CONCEPT
-	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	portrait_frame.add_child(portrait)
+	character_portrait = TextureRect.new()
+	character_portrait.name = "HeroConceptPreview"
+	character_portrait.texture = HERO_CONCEPT
+	character_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	character_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait_frame.add_child(character_portrait)
 
 	var details := VBoxContainer.new()
 	details.name = "CharacterDetails"
 	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	details.add_theme_constant_override("separation", 9)
 	content.add_child(details)
-	var name_label := _label("THE BLUE WRAITH", 31, PAPER)
-	name_label.name = "CharacterName"
-	details.add_child(name_label)
-	var role := _label("NIXBLADE   /   CYBER-NINJA INFILTRATOR", 13, CYAN)
-	role.name = "CharacterRole"
-	details.add_child(role)
-	var lore := _label("A silent blade in a city that never sleeps.\nBuilt for speed, precision, and a clean escape.", 14, MUTED)
-	lore.name = "CharacterDescription"
-	details.add_child(lore)
+	character_name_label = _label("KLINT", 31, PAPER)
+	character_name_label.name = "CharacterName"
+	details.add_child(character_name_label)
+	character_role_label = _label("NIXBLADE   /   CYBER-NINJA INFILTRATOR", 13, CYAN)
+	character_role_label.name = "CharacterRole"
+	details.add_child(character_role_label)
+	var selection_row := HBoxContainer.new()
+	selection_row.name = "CharacterSelection"
+	selection_row.add_theme_constant_override("separation", 10)
+	details.add_child(selection_row)
+	var blue_select := _menu_button("KLINT", true)
+	blue_select.name = "SelectBlueWraith"
+	blue_select.custom_minimum_size = Vector2(180, 44)
+	blue_select.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	blue_select.pressed.connect(func(): _select_player_character("blue_wraith"))
+	selection_row.add_child(blue_select)
+	character_select_buttons.append(blue_select)
+	var white_select := _menu_button("QUEL")
+	white_select.name = "SelectWhiteWraith"
+	white_select.custom_minimum_size = Vector2(180, 44)
+	white_select.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	white_select.pressed.connect(func(): _select_player_character("white_wraith"))
+	selection_row.add_child(white_select)
+	character_select_buttons.append(white_select)
+	character_description_label = _label("A silent blade in a city that never sleeps.\nBuilt for speed, precision, and a clean escape.", 14, MUTED)
+	character_description_label.name = "CharacterDescription"
+	character_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	details.add_child(character_description_label)
 	_add_rule(details)
 	var equipment_heading := _label("EQUIPPED FIELD KIT", 15, CYAN)
 	details.add_child(equipment_heading)
-	_add_gear_row(details, "01", "NIXBLADE KATANA", "Cyan plasma edge • primary melee weapon")
+	blade_gear_detail = _add_gear_row(details, "01", "NIXBLADE KATANA", "Cyan plasma edge • primary melee weapon")
 	_add_gear_row(details, "02", "ARMORED HOOD + VISOR", "Low-profile mask • luminous targeting slit")
 	_add_gear_row(details, "03", "COBALT CHEST + SHOULDER PLATES", "Layered impact armor • cyan unit insignia")
 	_add_gear_row(details, "04", "FOREARM BRACERS", "Blade-side guard • reinforced gauntlets")
@@ -400,6 +559,7 @@ func _build_character_profile() -> void:
 	character_back_button.name = "CharacterBackButton"
 	character_back_button.pressed.connect(_close_character)
 	details.add_child(character_back_button)
+	_refresh_character_profile()
 
 
 func _build_level_select() -> void:
@@ -487,6 +647,7 @@ func _open_level_select() -> void:
 	settings_layer.visible = false
 	character_layer.visible = false
 	level_select_layer.visible = true
+	_layout_title()
 	for level_button in level_select_buttons:
 		if not level_button.disabled:
 			level_button.grab_focus()
@@ -495,7 +656,8 @@ func _open_level_select() -> void:
 
 func _close_level_select() -> void:
 	level_select_layer.visible = false
-	var replay_button := get_node_or_null("TitleContent/ReplayLevelsButton") as Button
+	_layout_title()
+	var replay_button: Button = buttons[2] if buttons.size() > 2 else null
 	if replay_button:
 		replay_button.grab_focus()
 
@@ -506,7 +668,7 @@ func _replay_saved_level(level_index: int) -> void:
 	_transition_to_scene(SaveStore.LEVEL_SCENES[level_index], "REPLAYING " + SaveStore.LEVEL_NAMES[level_index].to_upper() + "…")
 
 
-func _add_gear_row(parent: VBoxContainer, index: String, item_name: String, detail: String) -> void:
+func _add_gear_row(parent: VBoxContainer, index: String, item_name: String, detail: String) -> Label:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	parent.add_child(row)
@@ -521,6 +683,43 @@ func _add_gear_row(parent: VBoxContainer, index: String, item_name: String, deta
 	item.add_child(name_label)
 	var detail_label := _label(detail, 11, MUTED)
 	item.add_child(detail_label)
+	character_gear_rows.append({"name": name_label, "detail": detail_label})
+	return detail_label
+
+
+func _select_player_character(character_id: String) -> void:
+	SaveStore.set_player_character(character_id)
+	_refresh_character_profile()
+
+
+func _refresh_character_profile() -> void:
+	if not is_instance_valid(character_portrait):
+		return
+	var white_selected := SaveStore.get_player_character() == "white_wraith"
+	character_name_label.text = "QUEL" if white_selected else "KLINT"
+	character_role_label.text = "PALE EDGE   /   CYBER-NINJA INFILTRATOR" if white_selected else "NIXBLADE   /   CYBER-NINJA INFILTRATOR"
+	character_description_label.text = "A pale silhouette against Nix City's neon rain.\nWhite armor and a bright blade cut through the dark." if white_selected else "A silent blade in a city that never sleeps.\nBuilt for speed, precision, and a clean escape."
+	character_portrait.material = null
+	if white_selected:
+		character_portrait.texture = AnimFrames.get_white_wraith_frames("idle")[0]
+		var key_material := ShaderMaterial.new()
+		key_material.shader = WHITE_WRAITH_KEY_SHADER
+		character_portrait.material = key_material
+	else:
+		character_portrait.texture = HERO_CONCEPT
+	character_status.text = "ACTIVE OPERATIVE  •  QUEL" if white_selected else "ACTIVE OPERATIVE  •  KLINT"
+	character_status.add_theme_color_override("font_color", Color("eef7ff") if white_selected else Color("76ffcb"))
+	character_select_buttons[0].text = "✓  KLINT" if not white_selected else "KLINT"
+	character_select_buttons[1].text = "✓  QUEL" if white_selected else "QUEL"
+	if not character_gear_rows.is_empty():
+		var names := ["PALE EDGE KATANA", "ARMORED HOOD + VISOR", "IVORY CHEST + SHOULDER PLATES", "WHITE FOREARM BRACERS", "WHITE SIGNAL SASH", "PALE UTILITY BELT + SHEATH", "WHITE KNEE, SHIN + BOOT ARMOR"]
+		var blue_names := ["NIXBLADE KATANA", "ARMORED HOOD + VISOR", "COBALT CHEST + SHOULDER PLATES", "FOREARM BRACERS", "ENERGY SASH", "UTILITY BELT + KATANA SHEATH", "KNEE, SHIN + BOOT ARMOR"]
+		var white_details := ["White energy edge • primary melee weapon", "Low-profile mask • luminous targeting slit", "Layered pale armor • white unit insignia", "Blade-side guard • polished white gauntlets", "White signal cloth • trailing scarf panels", "Field pouches • white katana sheath", "Lightweight white protection • silver accents"]
+		var blue_details := ["Cyan plasma edge • primary melee weapon", "Low-profile mask • luminous targeting slit", "Layered impact armor • cyan unit insignia", "Blade-side guard • reinforced gauntlets", "Blue signal cloth • trailing scarf panels", "Field pouches • secured blade carry", "Lightweight protection • cyan accents"]
+		for index in range(character_gear_rows.size()):
+			var row: Dictionary = character_gear_rows[index]
+			(row["name"] as Label).text = names[index] if white_selected else blue_names[index]
+			(row["detail"] as Label).text = white_details[index] if white_selected else blue_details[index]
 
 
 func _add_rule(parent: VBoxContainer) -> void:
@@ -533,7 +732,10 @@ func _add_rule(parent: VBoxContainer) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if level_select_layer.visible and event.keycode == KEY_ESCAPE:
+		if is_instance_valid(mobile_more_panel) and mobile_more_panel.visible and event.keycode == KEY_ESCAPE:
+			mobile_more_panel.visible = false
+			get_viewport().set_input_as_handled()
+		elif level_select_layer.visible and event.keycode == KEY_ESCAPE:
 			_close_level_select()
 			get_viewport().set_input_as_handled()
 		elif character_layer.visible and event.keycode == KEY_ESCAPE:
@@ -542,7 +744,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif settings_layer.visible and event.keycode == KEY_ESCAPE:
 			_close_settings()
 			get_viewport().set_input_as_handled()
-		elif not settings_layer.visible and not character_layer.visible and not level_select_layer.visible and event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
+		elif not settings_layer.visible and not character_layer.visible and not level_select_layer.visible and not mobile_more_panel.visible and event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
 			_start_game()
 			get_viewport().set_input_as_handled()
 	elif event is InputEventJoypadButton and event.pressed and not settings_layer.visible and not character_layer.visible and not level_select_layer.visible:
@@ -585,7 +787,9 @@ func _transition_to_scene(scene_path: String, prompt_text: String) -> void:
 	settings_layer.visible = false
 	character_layer.visible = false
 	level_select_layer.visible = false
-	var start_button := get_node_or_null("TitleContent/StartButton") as Button
+	if is_instance_valid(mobile_menu):
+		mobile_menu.visible = false
+	var start_button: Button = buttons[0] if not buttons.is_empty() else null
 	if start_button:
 		start_button.text = prompt_text
 	for button in buttons:
@@ -598,13 +802,17 @@ func _transition_to_scene(scene_path: String, prompt_text: String) -> void:
 func _open_settings() -> void:
 	character_layer.visible = false
 	settings_layer.visible = true
+	if is_instance_valid(mobile_more_panel):
+		mobile_more_panel.visible = false
+	_layout_title()
 	master_slider.grab_focus()
 
 
 func _close_settings() -> void:
 	settings_layer.visible = false
 	_save_settings()
-	var settings_button := get_node_or_null("TitleContent/SettingsButton") as Button
+	_layout_title()
+	var settings_button: Button = buttons[5] if buttons.size() > 5 else null
 	if settings_button:
 		settings_button.grab_focus()
 
@@ -612,13 +820,17 @@ func _close_settings() -> void:
 func _open_character() -> void:
 	settings_layer.visible = false
 	character_layer.visible = true
+	if is_instance_valid(mobile_more_panel):
+		mobile_more_panel.visible = false
+	_layout_title()
 	if is_instance_valid(character_back_button):
 		character_back_button.grab_focus()
 
 
 func _close_character() -> void:
 	character_layer.visible = false
-	var character_button := get_node_or_null("TitleContent/CharacterButton") as Button
+	_layout_title()
+	var character_button: Button = buttons[4] if buttons.size() > 4 else null
 	if character_button:
 		character_button.grab_focus()
 
@@ -628,6 +840,7 @@ func _layout_title() -> void:
 		return
 	var viewport_size := get_viewport_rect().size
 	var touch_layout := viewport_size.x < 1000.0 or OS.has_feature("mobile") or DisplayServer.is_touchscreen_available()
+	_set_mobile_title_mode(touch_layout)
 	var scale_factor := clampf(minf(viewport_size.y / 820.0, viewport_size.x / 1280.0), 0.50, 1.0)
 	if touch_layout:
 		scale_factor = maxf(scale_factor, 0.96)
@@ -643,6 +856,13 @@ func _layout_title() -> void:
 				if child is Label:
 					child.size.y = button.custom_minimum_size.y
 					child.add_theme_font_size_override("font_size", 17 if child.text.strip_edges() != "/" else 18)
+		else:
+			button.custom_minimum_size.x = 500.0 if button.text.contains("/") else 420.0
+			for child in button.get_children():
+				if child is Label and child.text.strip_edges() not in ["/", "01", "02", "03", "04", "05", "06"]:
+					child.position.x = 119.0
+					child.size.x = 370.0
+					child.add_theme_font_size_override("font_size", 15)
 	if controls_hint != null:
 		controls_hint.text = "MOVE / JUMP     •     DODGE     •     SKILL     •     SLASH" if touch_layout else "MOVE  A / D     •     JUMP  SPACE ×2     •     SLASH  J / X\nFOCUS  PRESS E (3s ACTIVE / 10s COOLDOWN)     •     DASH  D + R     •     STORY  F     •     PAUSE  ESC"
 		controls_hint.add_theme_font_size_override("font_size", 16 if touch_layout else 12)
@@ -669,6 +889,37 @@ func _layout_title() -> void:
 		var replay_panel := level_select_layer.get_node_or_null("CenterContainer/LevelSelectPanel") as Control
 		if replay_panel:
 			replay_panel.custom_minimum_size = Vector2(minf(540.0, viewport_size.x - 32.0), minf(620.0, viewport_size.y - 32.0))
+	if touch_layout and is_instance_valid(mobile_menu):
+		var margin := clampf(viewport_size.x * 0.045, 18.0, 56.0)
+		var header_scale := clampf(minf(viewport_size.x / 700.0, viewport_size.y / 700.0), 0.68, 1.0)
+		mobile_city_label.position = Vector2(margin, viewport_size.y * 0.045)
+		mobile_city_label.size = Vector2(viewport_size.x * 0.54, 26.0 * header_scale)
+		mobile_city_label.add_theme_font_size_override("font_size", maxi(12, roundi(14.0 * header_scale)))
+		mobile_game_title.position = Vector2(margin, viewport_size.y * 0.085)
+		mobile_game_title.size = Vector2(viewport_size.x * 0.65, viewport_size.y * 0.105)
+		mobile_game_title.add_theme_font_size_override("font_size", clampi(roundi(viewport_size.x / 13.0), 34, 58))
+		mobile_tagline.position = Vector2(margin + 2.0, viewport_size.y * 0.205)
+		mobile_tagline.size = Vector2(viewport_size.x * 0.67, viewport_size.y * 0.055)
+		mobile_tagline.add_theme_font_size_override("font_size", maxi(12, roundi(15.0 * header_scale)))
+		var action_width := minf(viewport_size.x * 0.73, 690.0)
+		var action_top := viewport_size.y * 0.285
+		var action_height := viewport_size.y - action_top - margin
+		mobile_actions_scroll.position = Vector2(margin, action_top)
+		mobile_actions_scroll.size = Vector2(action_width, action_height)
+		mobile_more_button.position = Vector2(viewport_size.x - margin - 64.0, margin)
+		mobile_more_button.size = Vector2(64.0, 64.0)
+		var popup_width := minf(320.0, viewport_size.x - margin * 2.0)
+		mobile_more_panel.position = Vector2(viewport_size.x - margin - popup_width, margin + 76.0)
+		mobile_more_panel.size = Vector2(popup_width, 146.0)
+		for index in range(buttons.size()):
+			var button := buttons[index]
+			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if index < 4:
+				button.custom_minimum_size = Vector2(action_width, clampf(viewport_size.y * 0.095, 54.0, 70.0))
+				_fit_mobile_menu_button(button)
+			else:
+				button.custom_minimum_size = Vector2(popup_width - 22.0, 54.0)
+				_fit_mobile_menu_button(button)
 
 
 func _label(text_value: String, font_size: int, color: Color) -> Label:

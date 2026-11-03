@@ -2,7 +2,7 @@ class_name NeonAnimationFrames
 extends RefCounted
 
 # Literal preloads keep every runtime frame discoverable by the Web exporter.
-# The playable hero uses the user-directed Blue Wraith sprite set.
+# Klint uses the original frame sets; Quel uses the separate atlas below.
 
 const HERO_IDLE = [
 	preload("res://assets/characters/blue_wraith/idle/idle_00.webp"),
@@ -38,6 +38,26 @@ const HERO_DEATH = [
 	preload("res://assets/characters/blue_wraith/death/death_02.webp"),
 	preload("res://assets/characters/blue_wraith/death/death_03.webp"),
 ]
+
+const WHITE_WRAITH_SHEET: Texture2D = preload("res://assets/characters/white_wraith_spritesheet.png")
+static var _white_wraith_frames: Dictionary = {}
+
+static func get_white_wraith_frames(animation_name: String) -> Array:
+	if _white_wraith_frames.is_empty():
+		var cell_size := Vector2(WHITE_WRAITH_SHEET.get_width() / 4.0, WHITE_WRAITH_SHEET.get_height() / 5.0)
+		var animation_rows := {"idle": 0, "run": 1, "jump": 2, "attack": 3, "death": 4}
+		for animation in animation_rows:
+			var row := int(animation_rows[animation])
+			var frames: Array[Texture2D] = []
+			for column in range(4):
+				var frame := AtlasTexture.new()
+				frame.atlas = WHITE_WRAITH_SHEET
+				frame.region = Rect2(Vector2(column, row) * cell_size, cell_size)
+				frame.filter_clip = true
+				frames.append(frame)
+			_white_wraith_frames[animation] = frames
+		return _white_wraith_frames.get(animation_name, _white_wraith_frames["idle"])
+	return _white_wraith_frames.get(animation_name, _white_wraith_frames["idle"])
 
 const BLADE_IDLE = [
 	preload("res://assets/characters/blade_guard/idle/idle_00.webp"),

@@ -1,4 +1,4 @@
-# Blue Wraith Runtime Sprite Set
+# Klint Runtime Sprite Set
 
 This is the active player character art, based on the design reference supplied by the user. The generated transparent source sheets are preserved in `source/`; runtime files are lossless WebP frame crops on aligned 192×192 canvases.
 

@@ -7,11 +7,14 @@ signal slash(origin: Vector2, facing: float, direction: Vector2, primary: bool)
 const TuningStore = preload("res://scripts/tuning_store.gd")
 const AnimFrames = preload("res://scripts/animation_frames.gd")
 const CharacterRim = preload("res://scripts/character_rim.gd")
+const SaveStore = preload("res://scripts/save_store.gd")
+const WHITE_WRAITH_KEY_SHADER: Shader = preload("res://shaders/white_wraith_key.gdshader")
 const ATTACK_DURATION := 0.33
 const STANDING_HIT_START_FRAME := 1
 const STANDING_HIT_END_FRAME := 3
 const DEATH_DURATION := 0.82
 const SPRITE_SCALE := 0.88
+const WHITE_WRAITH_SCALE := 0.62
 const IDLE_SCALE_RATIO := 1.18
 const IDLE_SPRITE_SCALE := SPRITE_SCALE / IDLE_SCALE_RATIO
 const RUN_SPRITE_SCALE := IDLE_SPRITE_SCALE
@@ -54,6 +57,7 @@ var external_time_scale := 1.0
 var force_idle_visual := false
 var drop_through_floor_y := INF
 var drop_through_remaining := 0.0
+var use_white_wraith := false
 
 func _ready() -> void:
 	collision_layer = 2
@@ -65,6 +69,13 @@ func _ready() -> void:
 	add_child(hurtbox_collision)
 	rim_light = CharacterRim.new()
 	add_child(rim_light)
+	use_white_wraith = SaveStore.get_player_character() == "white_wraith"
+	if use_white_wraith:
+		var key_material := ShaderMaterial.new()
+		key_material.shader = WHITE_WRAITH_KEY_SHADER
+		material = key_material
+	# Both playable designs use their clean sprite without an added rim-light halo.
+	rim_light.visible = false
 	_apply_hurtbox_tuning()
 	_sync_rim_light()
 	queue_redraw()
@@ -349,31 +360,33 @@ func get_jump_launch_speed() -> float:
 	return TuningStore.get_value("jump_force") * TuningStore.get_value("jump_launch_multiplier")
 
 func _resolve_visual_state() -> Dictionary:
-	var frames: Array = AnimFrames.HERO_IDLE
+	var frames: Array = AnimFrames.get_white_wraith_frames("idle") if use_white_wraith else AnimFrames.HERO_IDLE
 	var frame_index: int = 0
 	var sprite_scale := IDLE_SPRITE_SCALE
 	if not alive:
-		frames = AnimFrames.HERO_DEATH
+		frames = AnimFrames.get_white_wraith_frames("death") if use_white_wraith else AnimFrames.HERO_DEATH
 		frame_index = _phase_index(frames, death_time / DEATH_DURATION)
 		sprite_scale = SPRITE_SCALE
 	elif force_idle_visual:
 		pass
 	elif attack_time > 0.0:
-		frames = AnimFrames.HERO_ATTACK
+		frames = AnimFrames.get_white_wraith_frames("attack") if use_white_wraith else AnimFrames.HERO_ATTACK
 		frame_index = _phase_index(frames, 1.0 - attack_time / ATTACK_DURATION)
 		sprite_scale = SPRITE_SCALE
 	elif not is_on_floor():
-		frames = AnimFrames.HERO_JUMP
+		frames = AnimFrames.get_white_wraith_frames("jump") if use_white_wraith else AnimFrames.HERO_JUMP
 		frame_index = mini(int(floor(jump_animation_clock * TuningStore.get_value("jump_animation_fps"))), frames.size() - 1)
 		sprite_scale = SPRITE_SCALE
 	elif absf(velocity.x) > 24.0:
-		frames = AnimFrames.HERO_RUN
+		frames = AnimFrames.get_white_wraith_frames("run") if use_white_wraith else AnimFrames.HERO_RUN
 		frame_index = int(floor(animation_clock * 12.0)) % frames.size()
 		sprite_scale = RUN_SPRITE_SCALE
 	elif not force_idle_visual:
 		frame_index = int(floor(animation_clock * 3.0)) % frames.size()
+	if use_white_wraith:
+		sprite_scale *= WHITE_WRAITH_SCALE
 	var texture := frames[frame_index] as Texture2D
-	# Blue Wraith frames are authored facing right, so only left-facing movement flips them.
+	# Klint's frames are authored facing right, so only left-facing movement flips them.
 	var horizontal_flip := -1.0 if facing < 0.0 else 1.0
 	return {
 		"texture": texture,
