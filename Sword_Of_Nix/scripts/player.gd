@@ -8,6 +8,7 @@ const TuningStore = preload("res://scripts/tuning_store.gd")
 const AnimFrames = preload("res://scripts/animation_frames.gd")
 const CharacterRim = preload("res://scripts/character_rim.gd")
 const SaveStore = preload("res://scripts/save_store.gd")
+const ShieldVisual = preload("res://scripts/shield_visual.gd")
 const WHITE_WRAITH_KEY_SHADER: Shader = preload("res://shaders/white_wraith_key.gdshader")
 const ATTACK_DURATION := 0.33
 const STANDING_HIT_START_FRAME := 1
@@ -26,6 +27,8 @@ const MAX_HEALTH := 3
 const DAMAGE_INVULNERABILITY := 0.9
 const FOCUS_DURATION_SECONDS := 3.0
 const FOCUS_COOLDOWN_SECONDS := 10.0
+const QUEL_SHIELD_DURATION_SECONDS := 5.0
+const QUEL_SHIELD_MAX_HITS := 3
 
 var alive := true
 var health := MAX_HEALTH
@@ -40,6 +43,8 @@ var dash_distance_remaining := 0.0
 var focus_energy := 100.0
 var focus_cooldown_remaining := 0.0
 var focus_duration_remaining := 0.0
+var shield_duration_remaining := 0.0
+var shield_hits_remaining := 0
 var is_focusing := false
 var animation_clock := 0.0
 var death_time := 0.0
@@ -52,6 +57,7 @@ var queued_attack_direction := Vector2.ZERO
 var jump_animation_clock := 0.0
 var jumps_used := 0
 var rim_light: Sprite2D
+var shield_visual: Node2D
 var simulation_scale := 1.0
 var external_time_scale := 1.0
 var force_idle_visual := false
@@ -69,6 +75,10 @@ func _ready() -> void:
 	add_child(hurtbox_collision)
 	rim_light = CharacterRim.new()
 	add_child(rim_light)
+	shield_visual = ShieldVisual.new()
+	shield_visual.name = "QuelShieldVisual"
+	shield_visual.z_index = 2
+	add_child(shield_visual)
 	use_white_wraith = SaveStore.get_player_character() == "white_wraith"
 	if use_white_wraith:
 		var key_material := ShaderMaterial.new()
@@ -89,17 +99,29 @@ func _physics_process(delta: float) -> void:
 	damage_invulnerability = maxf(0.0, damage_invulnerability - delta)
 	focus_cooldown_remaining = maxf(0.0, focus_cooldown_remaining - delta)
 	focus_duration_remaining = maxf(0.0, focus_duration_remaining - delta)
+	shield_duration_remaining = maxf(0.0, shield_duration_remaining - delta)
 	if alive:
 		var focus_dash_held := Input.is_action_pressed("focus_dash") and Input.is_action_pressed("move_right")
 		if not focus_dash_held:
 			focus_dash_activated = false
 		if control_enabled and Input.is_action_just_pressed("focus") and focus_cooldown_remaining <= 0.0 and not is_focusing:
-			focus_duration_remaining = FOCUS_DURATION_SECONDS
 			focus_cooldown_remaining = FOCUS_COOLDOWN_SECONDS
-		is_focusing = control_enabled and focus_duration_remaining > 0.0
-		focus_energy = 100.0 * focus_duration_remaining / FOCUS_DURATION_SECONDS if is_focusing else 100.0 * (1.0 - focus_cooldown_remaining / FOCUS_COOLDOWN_SECONDS)
+			if use_white_wraith:
+				shield_duration_remaining = QUEL_SHIELD_DURATION_SECONDS
+				shield_hits_remaining = QUEL_SHIELD_MAX_HITS
+				if is_instance_valid(shield_visual):
+					shield_visual.call("flash_hit")
+			else:
+				focus_duration_remaining = FOCUS_DURATION_SECONDS
+		is_focusing = not use_white_wraith and control_enabled and focus_duration_remaining > 0.0
+		if use_white_wraith:
+			focus_energy = 100.0 * shield_duration_remaining / QUEL_SHIELD_DURATION_SECONDS if is_shield_active() else 100.0 * (1.0 - focus_cooldown_remaining / FOCUS_COOLDOWN_SECONDS)
+		else:
+			focus_energy = 100.0 * focus_duration_remaining / FOCUS_DURATION_SECONDS if is_focusing else 100.0 * (1.0 - focus_cooldown_remaining / FOCUS_COOLDOWN_SECONDS)
 	else:
 		cancel_focus()
+	if is_instance_valid(shield_visual):
+		shield_visual.call("set_state", is_shield_active(), shield_hits_remaining, shield_duration_remaining)
 	_refresh_simulation_scale()
 	var step := delta * simulation_scale
 	_update_drop_through(step)
@@ -263,6 +285,13 @@ func die() -> void:
 func take_damage(amount: int = 1, knockback: Vector2 = Vector2.ZERO) -> bool:
 	if not alive or damage_invulnerability > 0.0 or amount <= 0:
 		return false
+	if is_shield_active():
+		shield_hits_remaining = maxi(0, shield_hits_remaining - 1)
+		damage_invulnerability = DAMAGE_INVULNERABILITY
+		if is_instance_valid(shield_visual):
+			shield_visual.call("flash_hit")
+			shield_visual.call("set_state", is_shield_active(), shield_hits_remaining, shield_duration_remaining)
+		return true
 	health = maxi(0, health - amount)
 	damage_invulnerability = DAMAGE_INVULNERABILITY
 	if knockback.length_squared() > 0.0:
@@ -310,8 +339,22 @@ func set_external_time_scale(value: float) -> void:
 
 func cancel_focus() -> void:
 	focus_duration_remaining = 0.0
+	shield_duration_remaining = 0.0
+	shield_hits_remaining = 0
 	is_focusing = false
+	if is_instance_valid(shield_visual):
+		shield_visual.call("set_state", false, 0, 0.0)
 	_refresh_simulation_scale()
+
+func is_shield_active() -> bool:
+	return use_white_wraith and alive and shield_duration_remaining > 0.0 and shield_hits_remaining > 0
+
+func get_skill_status_text() -> String:
+	if use_white_wraith:
+		if is_shield_active():
+			return "SHIELD  %d HITS  %.1fs" % [shield_hits_remaining, shield_duration_remaining]
+		return "SHIELD READY" if focus_cooldown_remaining <= 0.0 else "SHIELD  %.1fs" % focus_cooldown_remaining
+	return "FOCUS ACTIVE  %.1fs" % focus_duration_remaining if is_focusing else ("FOCUS READY" if focus_cooldown_remaining <= 0.0 else "FOCUS  %.1fs" % focus_cooldown_remaining)
 
 func _refresh_simulation_scale() -> void:
 	simulation_scale = external_time_scale

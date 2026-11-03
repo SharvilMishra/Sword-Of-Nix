@@ -16,7 +16,7 @@ func _ready() -> void:
 	_make_button("aim_down", "▼", "Drop through platforms", Vector2.ZERO)
 	_make_button("aim_up", "▲\nJUMP", "Jump (up to two times) / aim up", Vector2.ZERO)
 	_make_button("dodge", "DODGE", "Dodge slash (mobile equivalent of holding D + R)", Vector2.ZERO)
-	_make_button("focus", "SKILL", "Skill: slow the world for 3 seconds", Vector2.ZERO)
+	_make_button("focus", "SKILL", "Klint: slow the world for 3 seconds. Quel: shield for 5 seconds, blocks 3 hits.", Vector2.ZERO)
 	_make_button("attack", "SLASH", "Attack", Vector2.ZERO)
 	story_continue_button = _make_button("continue_story", "NEXT", "Continue story", Vector2.ZERO)
 	story_continue_button.visible = false

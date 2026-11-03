@@ -8,7 +8,7 @@
 
 - Fast side-scrolling combat with directional katana slashes and projectile parries.
 - A two-jump limit, one-way platforms, and a forward Focus Dash.
-- Press **E** to activate Focus: you move normally while the world slows for 3 seconds. The 10-second cooldown starts on activation.
+- Press **E** to use the selected character's skill: Klint slows the world for 3 seconds; Quel gains a shield for 5 seconds that blocks up to 3 hits. Both skills have a 10-second cooldown from activation.
 - Three player HP with brief damage protection and clear health feedback.
 - Story prologue, rooftop mission, multi-floor hideout, Warden battle, and an ending sequence.
 - Local level progression, an all-level select menu, and a cyberpunk-paintstroke title menu.
@@ -42,7 +42,7 @@ These commands require the Godot executable to be available as godot in your ter
 | Space | Jump, up to two times before landing |
 | Hold S / Down, then press Space | Drop through a one-way platform |
 | J, X, or left-click | Slash and parry |
-| Press E | Focus slows the world for 3s; 10s cooldown starts on activation |
+| Press E | Klint: slow the world for 3s. Quel: block up to 3 hits for 5s. Both have a 10s cooldown. |
 | Hold D + R | Focus Dash and slash forward |
 | F | Continue story dialogue |
 | Backspace | Restart the current level or room |
@@ -52,7 +52,7 @@ These commands require the Godot executable to be available as godot in your ter
 
 ## Android build
 
-The project uses landscape orientation on phones and shows translucent touch controls during play. The left side handles backward/forward movement; jump, Skill, and slash are on the right. Skill remains a tap-to-activate ability: the world slows for 3 seconds, then the 10-second cooldown begins.
+The project uses landscape orientation on phones and shows translucent touch controls during play. The left side handles backward/forward movement; jump, Skill, and slash are on the right. Skill is tap-to-activate: Klint slows the world for 3 seconds, while Quel blocks up to 3 hits for 5 seconds. The 10-second cooldown begins on activation.
 
 An Android export preset is included. In Godot 4.7.2, open **Project > Export**, select **Android**, and export a debug APK to `dist/SwordOfNix-android-debug.apk`. Android export requires matching Godot export templates, JDK 17, and the Android SDK configured in Editor Settings. The debug build is for personal device testing; public release builds should use a release keystore that you control.
 

@@ -899,7 +899,7 @@ func _update_hud() -> void:
 		return
 	timer_label.text = "%05.2f" % elapsed
 	focus_fill.size.x = 230.0 * player.focus_energy / 100.0
-	focus_text.text = "FOCUS ACTIVE  %.1fs" % player.focus_duration_remaining if player.is_focusing else ("FOCUS READY" if player.focus_cooldown_remaining <= 0.0 else "FOCUS  %.1fs" % player.focus_cooldown_remaining)
+	focus_text.text = player.get_skill_status_text()
 	player_health_label.text = "HP  " + "◆".repeat(player.health) + "◇".repeat(PlayerActor.MAX_HEALTH - player.health)
 	player_health_label.add_theme_color_override("font_color", Color("ff657c") if player.health == 1 else Color("edfaff"))
 	focus_wash.color.a = 0.10 if player.is_focusing else 0.0
