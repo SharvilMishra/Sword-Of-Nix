@@ -1,5 +1,5 @@
 extends Node
-## The supplied source keeps Chinese text as stable keys; this remix pins all live UI to English.
+## Supports English and the available Simplified Chinese source strings.
 signal language_changed(locale: String)
 
 var locale := "en"
@@ -22,13 +22,13 @@ func _ready() -> void:
 	set_language("en")
 
 func set_language(value: String = "en", _save_preference: bool = false) -> void:
-	if value != "en":
+	if value not in ["en", "zh_CN"]:
 		return
-	locale = "en"
+	locale = value
 	TranslationServer.set_locale(locale)
 	_refresh_formatted(get_tree().root)
 	if OS.has_feature("web"):
-		JavaScriptBridge.eval("(() => { document.documentElement.lang = 'en'; document.title = 'Sword Of Nix'; })()")
+		JavaScriptBridge.eval("(() => { document.documentElement.lang = '%s'; document.title = 'Sword Of Nix'; })()" % locale)
 	language_changed.emit(locale)
 
 func set_formatted(label: Label, source: String, values: Variant) -> void:

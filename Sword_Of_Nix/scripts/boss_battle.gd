@@ -292,7 +292,7 @@ func _start_battle(play_story_intro: bool = false) -> void:
 	_reset_finisher_slowdown()
 	end_overlay.visible = false
 	status_label.text = "Execution Protocol // The Warden"
-	attack_label.text = "Read the tells. Break the pattern."
+	attack_label.text = "Read the tells. You already know them."
 	_spawn_player()
 	_spawn_boss()
 	if play_story_intro:
@@ -435,7 +435,7 @@ func _begin_boss_combat() -> void:
 		boss.set_physics_process(true)
 	_start_boss_music()
 	status_label.text = "Combat Begins"
-	attack_label.text = "Read the tells. Break the pattern."
+	attack_label.text = "Read the tells. You already know them."
 	_status_flash(Color("ffb04f"))
 
 func _set_combat_hud_visible(is_visible: bool) -> void:
@@ -762,7 +762,7 @@ func _build_hud() -> void:
 	player_health_label.position = Vector2(38.0, 102.0)
 	player_health_label.size = Vector2(180.0, 28.0)
 	ui.add_child(player_health_label)
-	attack_label = _hud_label("Read the tells. Break the pattern.", 16, Color("ffb04f"))
+	attack_label = _hud_label("Read the tells. You already know them.", 16, Color("ffb04f"))
 	attack_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	attack_label.position = Vector2(-330.0, 136.0)
 	attack_label.size = Vector2(660.0, 32.0)

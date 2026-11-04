@@ -1,6 +1,6 @@
 # Klint Runtime Sprite Set
 
-This is the active player character art, based on the design reference supplied by the user. The generated transparent source sheets are preserved in `source/`; runtime files are lossless WebP frame crops on aligned 192×192 canvases.
+This is the active player character art, based on the design reference supplied by the user. The original transparent source sheets are preserved in `source/`. Klint's idle, run, attack, and death animations use the cleaned `source/klint_main_sheet_clean.png` atlas; it contains no ground reflection or mirrored duplicate. The jump animation uses the four aligned WebP frame crops.
 
 | Animation | Runtime frames | Source sheet area |
 | --- | ---: | --- |

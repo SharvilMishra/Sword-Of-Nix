@@ -2,7 +2,6 @@ extends Control
 
 const TITLE_ART: Texture2D = preload("res://assets/world/title_splash.webp")
 const TITLE_BGM: AudioStream = preload("res://BGM SONG/Headlights_on_Wet_Pavement.mp3")
-const HERO_CONCEPT: Texture2D = preload("res://assets/characters/blue_wraith/idle/idle_00.webp")
 const AnimFrames = preload("res://scripts/animation_frames.gd")
 const WHITE_WRAITH_KEY_SHADER: Shader = preload("res://shaders/white_wraith_key.gdshader")
 const MENU_FONT: Font = preload("res://assets/template/fonts/ui_regular.tres")
@@ -19,13 +18,14 @@ const INK := Color("04131b")
 class NavButtonArt extends Control:
 	var active := false
 	var danger := false
+	var accent := Color("08d6df")
 
 	func _draw() -> void:
 		var width := size.x
 		var height := size.y
 		if width < 10.0 or height < 10.0:
 			return
-		var tint := Color("ff4056") if danger else Color("08d6df")
+		var tint := Color("ff4056") if danger else accent
 		var fill := tint if active else Color(0.006, 0.024, 0.04, 0.82)
 		var frame := PackedVector2Array([
 			Vector2(1, 5), Vector2(6, 1), Vector2(width - 30, 1),
@@ -47,6 +47,24 @@ class NavButtonArt extends Control:
 		if active:
 			draw_rect(Rect2(0, 5, 4, height - 10), Color("eaffff"))
 
+class MenuGlassArt extends Control:
+	func _draw() -> void:
+		var w := size.x
+		var h := size.y
+		if w < 20.0 or h < 20.0:
+			return
+		var frame := PackedVector2Array([
+				Vector2(0, 0), Vector2(w - 48, 0), Vector2(w - 20, 22),
+				Vector2(w - 20, h - 22), Vector2(w - 48, h), Vector2(0, h)
+			])
+		var outline := frame.duplicate()
+		outline.append(frame[0])
+		draw_colored_polygon(frame, Color(0.004, 0.012, 0.026, 0.50))
+		draw_polyline(outline, Color(0.20, 0.82, 0.95, 0.30), 1.5, true)
+		draw_line(Vector2(0, 3), Vector2(w * 0.68, 3), Color(0.20, 0.82, 0.95, 0.42), 2.0, true)
+		draw_line(Vector2(0, h - 3), Vector2(w * 0.56, h - 3), Color(0.20, 0.82, 0.95, 0.22), 1.0, true)
+		draw_rect(Rect2(0, h * 0.28, 3, h * 0.44), Color(0.10, 0.88, 1.0, 0.72))
+		draw_circle(Vector2(w - 20, 22), 2.5, Color(0.45, 0.96, 1.0, 0.82))
 class BrushMarks extends Control:
 	func _draw() -> void:
 		# Broad, uneven paint swashes keep the menu graphic and hand-painted.
@@ -95,10 +113,21 @@ var mobile_more_button: Button
 var mobile_more_panel: PanelContainer
 var mobile_more_list: VBoxContainer
 var mobile_title_mode := false
+var desktop_more_button: Button
+var desktop_more_panel: PanelContainer
+var desktop_more_list: VBoxContainer
+var language_option: OptionButton
+var gear_dropdowns: Dictionary = {}
+var gear_status_labels: Dictionary = {}
+var profile_progress_label: Label
+var profile_progress_bar: ProgressBar
+var profile_reward_list: VBoxContainer
 
 
 func _ready() -> void:
 	_build_title()
+	var initial_size := get_viewport_rect().size
+	mobile_title_mode = not (initial_size.x < 1000.0 or OS.has_feature("mobile") or DisplayServer.is_touchscreen_available())
 	get_viewport().size_changed.connect(_layout_title)
 	_load_settings()
 	_start_title_music()
@@ -126,12 +155,11 @@ func _build_title() -> void:
 	wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(wash)
 
-	# A subtle dark plate keeps the left-side menu readable over any crop.
-	var plate := ColorRect.new()
-	plate.name = "MenuShadow"
-	plate.anchor_right = 0.57
+	# A slanted glass rail frames the menu while leaving the city art visible.
+	var plate := MenuGlassArt.new()
+	plate.name = "MenuGlassRail"
+	plate.anchor_right = 0.59
 	plate.anchor_bottom = 1.0
-	plate.color = Color(0.008, 0.014, 0.028, 0.40)
 	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(plate)
 
@@ -234,6 +262,7 @@ func _build_title() -> void:
 	_build_character_profile()
 	_build_level_select()
 	_build_mobile_title_menu()
+	_build_desktop_more_menu()
 
 	fade_layer = ColorRect.new()
 	fade_layer.name = "TitleFade"
@@ -276,6 +305,19 @@ func _build_mobile_title_menu() -> void:
 	divider.color = Color(0.18, 0.83, 0.95, 0.78)
 	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mobile_menu.add_child(divider)
+
+	var mobile_actions_backdrop := PanelContainer.new()
+	mobile_actions_backdrop.name = "MobileActionsGlassPanel"
+	mobile_actions_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var glass_style := StyleBoxFlat.new()
+	glass_style.bg_color = Color(0.004, 0.018, 0.032, 0.58)
+	glass_style.border_color = Color(0.18, 0.83, 0.95, 0.34)
+	glass_style.set_border_width_all(1)
+	glass_style.set_corner_radius_all(8)
+	glass_style.shadow_color = Color(0.0, 0.0, 0.0, 0.26)
+	glass_style.shadow_size = 12
+	mobile_actions_backdrop.add_theme_stylebox_override("panel", glass_style)
+	mobile_menu.add_child(mobile_actions_backdrop)
 
 	mobile_actions_scroll = ScrollContainer.new()
 	mobile_actions_scroll.name = "MobileMainActionsScroll"
@@ -327,6 +369,48 @@ func _build_mobile_title_menu() -> void:
 	mobile_more_list.add_theme_constant_override("separation", 8)
 	mobile_more_panel.add_child(mobile_more_list)
 
+func _build_desktop_more_menu() -> void:
+	desktop_more_button = Button.new()
+	desktop_more_button.name = "DesktopMoreButton"
+	desktop_more_button.text = "⋮"
+	desktop_more_button.tooltip_text = "Profile and settings"
+	desktop_more_button.focus_mode = Control.FOCUS_ALL
+	desktop_more_button.add_theme_font_size_override("font_size", 34)
+	desktop_more_button.add_theme_color_override("font_color", PAPER)
+	var button_style := StyleBoxFlat.new()
+	button_style.bg_color = Color(0.008, 0.045, 0.07, 0.86)
+	button_style.border_color = Color(0.18, 0.83, 0.95, 0.90)
+	button_style.set_border_width_all(2)
+	button_style.set_corner_radius_all(8)
+	desktop_more_button.add_theme_stylebox_override("normal", button_style)
+	desktop_more_button.add_theme_stylebox_override("hover", button_style)
+	desktop_more_button.pressed.connect(_toggle_desktop_more_menu)
+	add_child(desktop_more_button)
+
+	desktop_more_panel = PanelContainer.new()
+	desktop_more_panel.name = "DesktopMorePanel"
+	desktop_more_panel.visible = false
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.008, 0.025, 0.045, 0.98)
+	panel_style.border_color = Color(0.18, 0.83, 0.95, 0.94)
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(6)
+	panel_style.content_margin_left = 10
+	panel_style.content_margin_right = 10
+	panel_style.content_margin_top = 10
+	panel_style.content_margin_bottom = 10
+	desktop_more_panel.add_theme_stylebox_override("panel", panel_style)
+	add_child(desktop_more_panel)
+	desktop_more_list = VBoxContainer.new()
+	desktop_more_list.name = "DesktopMoreActions"
+	desktop_more_list.add_theme_constant_override("separation", 8)
+	desktop_more_panel.add_child(desktop_more_list)
+
+
+func _toggle_desktop_more_menu() -> void:
+	desktop_more_panel.visible = not desktop_more_panel.visible
+
+
 func _fit_mobile_menu_button(button: Button) -> void:
 	for child in button.get_children():
 		if child is Label:
@@ -342,19 +426,28 @@ func _fit_mobile_menu_button(button: Button) -> void:
 func _set_mobile_title_mode(touch_layout: bool) -> void:
 	if touch_layout != mobile_title_mode:
 		if touch_layout:
+			if is_instance_valid(desktop_more_panel):
+				desktop_more_panel.visible = false
 			for index in range(buttons.size()):
 				var button := buttons[index]
 				button.reparent(mobile_actions_list if index < 4 else mobile_more_list)
 		else:
 			mobile_more_panel.visible = false
+			if is_instance_valid(desktop_more_panel):
+				desktop_more_panel.visible = false
 			var divider := title_content.get_node_or_null("MenuDivider")
 			var insert_at := divider.get_index() + 1 if divider else title_content.get_child_count()
 			for index in range(buttons.size()):
-				buttons[index].reparent(title_content)
-				title_content.move_child(buttons[index], mini(insert_at + index, title_content.get_child_count() - 1))
+				if index < 4:
+					buttons[index].reparent(title_content)
+					title_content.move_child(buttons[index], mini(insert_at + index, title_content.get_child_count() - 1))
+				else:
+					buttons[index].reparent(desktop_more_list)
 		mobile_title_mode = touch_layout
 	title_content.visible = not touch_layout
 	mobile_menu.visible = touch_layout and not is_starting and not settings_layer.visible and not character_layer.visible and not level_select_layer.visible
+	if is_instance_valid(desktop_more_button):
+		desktop_more_button.visible = not touch_layout and not is_starting and not settings_layer.visible and not character_layer.visible and not level_select_layer.visible
 
 
 func _toggle_mobile_more_menu() -> void:
@@ -419,6 +512,15 @@ func _build_settings() -> void:
 	master_slider.value = _get_master_volume()
 	master_slider.value_changed.connect(_set_master_volume)
 	column.add_child(master_slider)
+	var language_label := _label("LANGUAGE", 14, CYAN)
+	column.add_child(language_label)
+	language_option = OptionButton.new()
+	language_option.name = "LanguageSelect"
+	language_option.add_item("English", 0)
+	language_option.add_item("简体中文", 1)
+	language_option.custom_minimum_size = Vector2(420, 36)
+	language_option.item_selected.connect(_set_language_index)
+	column.add_child(language_option)
 
 	fullscreen_toggle = CheckButton.new()
 	fullscreen_toggle.name = "FullscreenToggle"
@@ -482,18 +584,26 @@ func _build_character_profile() -> void:
 	var page := VBoxContainer.new()
 	page.name = "VBoxContainer"
 	page.add_theme_constant_override("separation", 12)
-	panel.add_child(page)
+	var page_scroll := ScrollContainer.new()
+	page_scroll.name = "ProfileScroll"
+	page_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	page_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	page_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel.add_child(page_scroll)
+	page_scroll.add_child(page)
 	var heading := _label("OPERATIVE LOADOUT   /   NIX CITY", 26, CYAN)
 	heading.name = "CharacterHeading"
 	page.add_child(heading)
 	_add_rule(page)
 
 	var content := HBoxContainer.new()
+	content.name = "CharacterContent"
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 24)
 	page.add_child(content)
 
 	var portrait_frame := PanelContainer.new()
+	portrait_frame.name = "HeroPortraitFrame"
 	portrait_frame.custom_minimum_size = Vector2(315, 0)
 	var portrait_style := StyleBoxFlat.new()
 	portrait_style.bg_color = Color(0.005, 0.014, 0.028, 0.96)
@@ -503,7 +613,7 @@ func _build_character_profile() -> void:
 	content.add_child(portrait_frame)
 	character_portrait = TextureRect.new()
 	character_portrait.name = "HeroConceptPreview"
-	character_portrait.texture = HERO_CONCEPT
+	character_portrait.texture = AnimFrames.get_klint_frames("idle")[0] as Texture2D
 	character_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	character_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	portrait_frame.add_child(character_portrait)
@@ -523,17 +633,13 @@ func _build_character_profile() -> void:
 	selection_row.name = "CharacterSelection"
 	selection_row.add_theme_constant_override("separation", 10)
 	details.add_child(selection_row)
-	var blue_select := _menu_button("KLINT", true)
+	var blue_select := _hero_select_button("KLINT", "BLUE WRAITH  /  FOCUS", AnimFrames.get_klint_frames("idle")[0] as Texture2D, Color("39caff"))
 	blue_select.name = "SelectBlueWraith"
-	blue_select.custom_minimum_size = Vector2(180, 44)
-	blue_select.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	blue_select.pressed.connect(func(): _select_player_character("blue_wraith"))
 	selection_row.add_child(blue_select)
 	character_select_buttons.append(blue_select)
-	var white_select := _menu_button("QUEL")
+	var white_select := _hero_select_button("QUEL", "PALE EDGE  /  AEGIS", AnimFrames.get_white_wraith_frames("idle")[0] as Texture2D, Color("edf7ff"))
 	white_select.name = "SelectWhiteWraith"
-	white_select.custom_minimum_size = Vector2(180, 44)
-	white_select.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	white_select.pressed.connect(func(): _select_player_character("white_wraith"))
 	selection_row.add_child(white_select)
 	character_select_buttons.append(white_select)
@@ -542,15 +648,28 @@ func _build_character_profile() -> void:
 	character_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	details.add_child(character_description_label)
 	_add_rule(details)
-	var equipment_heading := _label("EQUIPPED FIELD KIT", 15, CYAN)
+	var equipment_heading := _label("EQUIPMENT LOADOUT", 15, CYAN)
 	details.add_child(equipment_heading)
-	blade_gear_detail = _add_gear_row(details, "01", "NIXBLADE KATANA", "Cyan plasma edge • primary melee weapon")
-	_add_gear_row(details, "02", "ARMORED HOOD + VISOR", "Low-profile mask • luminous targeting slit")
-	_add_gear_row(details, "03", "COBALT CHEST + SHOULDER PLATES", "Layered impact armor • cyan unit insignia")
-	_add_gear_row(details, "04", "FOREARM BRACERS", "Blade-side guard • reinforced gauntlets")
-	_add_gear_row(details, "05", "ENERGY SASH", "Blue signal cloth • trailing scarf panels")
-	_add_gear_row(details, "06", "UTILITY BELT + KATANA SHEATH", "Field pouches • secured blade carry")
-	_add_gear_row(details, "07", "KNEE, SHIN + BOOT ARMOR", "Lightweight protection • cyan accents")
+	_add_equipment_slot(details, "weapon", "WEAPON", ["Nixblade Katana", "Pale Edge Katana", "Twin Arc Blades"])
+	_add_equipment_slot(details, "armor", "ARMOR", ["Cobalt Field Armor", "Ivory Aegis", "Shadow Weave"])
+	_add_equipment_slot(details, "charm", "CORE", ["Focus Core", "Aegis Sigil", "Timeglass Shard"])
+	_add_rule(details)
+	var progression_heading := _label("CAMPAIGN PROGRESSION", 15, CYAN)
+	details.add_child(progression_heading)
+	profile_progress_label = _label("0 / 4 MISSIONS CLEARED", 12, PAPER)
+	details.add_child(profile_progress_label)
+	profile_progress_bar = ProgressBar.new()
+	profile_progress_bar.name = "CampaignProgress"
+	profile_progress_bar.max_value = SaveStore.LEVEL_NAMES.size()
+	profile_progress_bar.show_percentage = false
+	profile_progress_bar.custom_minimum_size.y = 12
+	details.add_child(profile_progress_bar)
+	var rewards_heading := _label("FIELD REWARDS", 15, CYAN)
+	details.add_child(rewards_heading)
+	profile_reward_list = VBoxContainer.new()
+	profile_reward_list.name = "ProfileRewards"
+	profile_reward_list.add_theme_constant_override("separation", 4)
+	details.add_child(profile_reward_list)
 
 	character_status = _label("ACTIVE OPERATIVE  •  CURRENT PLAYER", 12, Color("76ffcb"))
 	character_status.name = "CharacterStatus"
@@ -562,6 +681,91 @@ func _build_character_profile() -> void:
 	_refresh_character_profile()
 
 
+class HeroCardArt extends Control:
+	var accent: Color = Color("39caff")
+	var selected := false
+	var hovered := false
+
+	func _draw() -> void:
+		var w := size.x
+		var h := size.y
+		var frame := PackedVector2Array([
+			Vector2(1, 6), Vector2(7, 1), Vector2(w - 13, 1),
+			Vector2(w - 1, 13), Vector2(w - 1, h - 7),
+			Vector2(w - 7, h - 1), Vector2(1, h - 1)
+		])
+		var fill := Color(accent.r, accent.g, accent.b, 0.22 if selected else (0.14 if hovered else 0.07))
+		draw_colored_polygon(frame, fill)
+		var outline := frame.duplicate()
+		outline.append(frame[0])
+		draw_polyline(outline, Color(accent.r, accent.g, accent.b, 0.98 if selected else 0.48), 1.8 if selected else 1.2, true)
+		draw_rect(Rect2(3, 8, 3, h - 16), accent if selected else Color(accent.r, accent.g, accent.b, 0.58))
+		if selected:
+			draw_line(Vector2(58, h - 7), Vector2(w - 14, h - 7), accent, 2.0, true)
+
+
+func _hero_select_button(hero_name: String, subtitle: String, portrait_texture: Texture2D, accent: Color) -> Button:
+	var button := Button.new()
+	button.text = ""
+	button.custom_minimum_size = Vector2(180, 82)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.focus_mode = Control.FOCUS_ALL
+	for state in ["normal", "hover", "focus", "pressed"]:
+		button.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	var art := HeroCardArt.new()
+	art.name = "HeroCardArt"
+	art.accent = accent
+	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(art)
+	var portrait := TextureRect.new()
+	portrait.name = "HeroPortrait"
+	portrait.texture = portrait_texture
+	if hero_name == "QUEL":
+		var portrait_key := ShaderMaterial.new()
+		portrait_key.shader = WHITE_WRAITH_KEY_SHADER
+		portrait.material = portrait_key
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.position = Vector2(6, 5)
+	portrait.size = Vector2(48, 72)
+	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(portrait)
+	var title := _label(hero_name, 15, PAPER)
+	title.name = "HeroTitle"
+	title.position = Vector2(60, 8)
+	title.size = Vector2(112, 24)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(title)
+	var detail := _label(subtitle, 9, accent)
+	detail.name = "HeroSubtitle"
+	detail.position = Vector2(60, 32)
+	detail.size = Vector2(112, 18)
+	detail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(detail)
+	var state_label := _label("ACTIVE OPERATIVE", 9, accent)
+	state_label.name = "HeroState"
+	state_label.position = Vector2(60, 53)
+	state_label.size = Vector2(112, 18)
+	state_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(state_label)
+	button.set_meta("hero_card_art", art)
+	button.set_meta("hero_state_label", state_label)
+	button.mouse_entered.connect(func(): art.hovered = true; art.queue_redraw())
+	button.mouse_exited.connect(func(): art.hovered = false; art.queue_redraw())
+	button.focus_entered.connect(func(): art.hovered = true; art.queue_redraw())
+	button.focus_exited.connect(func(): art.hovered = false; art.queue_redraw())
+	return button
+
+
+func _set_hero_button_selected(button: Button, selected: bool) -> void:
+	var art := button.get_meta("hero_card_art") as HeroCardArt
+	var state_label := button.get_meta("hero_state_label") as Label
+	if is_instance_valid(art):
+		art.selected = selected
+		art.queue_redraw()
+	if is_instance_valid(state_label):
+		state_label.text = "ACTIVE OPERATIVE" if selected else "SELECT OPERATIVE"
 func _build_level_select() -> void:
 	level_select_layer = Control.new()
 	level_select_layer.name = "LevelSelectOverlay"
@@ -668,6 +872,68 @@ func _replay_saved_level(level_index: int) -> void:
 	_transition_to_scene(SaveStore.LEVEL_SCENES[level_index], "REPLAYING " + SaveStore.LEVEL_NAMES[level_index].to_upper() + "…")
 
 
+func _add_equipment_slot(parent: VBoxContainer, slot: String, slot_title: String, choices: Array[String]) -> void:
+	var row := HBoxContainer.new()
+	row.name = "GearSlot_" + slot
+	row.add_theme_constant_override("separation", 8)
+	parent.add_child(row)
+	var title := _label(slot_title, 11, MUTED)
+	title.custom_minimum_size.x = 68
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(title)
+	var selector := OptionButton.new()
+	selector.name = "GearChoice_" + slot
+	selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	selector.custom_minimum_size.y = 38
+	for choice in choices:
+		selector.add_item(choice)
+	var equipped := SaveStore.get_equipped_gear(slot)
+	for index in range(selector.item_count):
+		if selector.get_item_text(index) == equipped:
+			selector.select(index)
+	selector.add_theme_font_size_override("font_size", 12)
+	row.add_child(selector)
+	var equip_button := _menu_button("EQUIP", true)
+	equip_button.custom_minimum_size = Vector2(82, 38)
+	equip_button.add_theme_font_size_override("font_size", 11)
+	equip_button.pressed.connect(_equip_selected.bind(slot))
+	row.add_child(equip_button)
+	var status := _label("EQUIPPED: " + equipped.to_upper(), 10, Color("76ffcb"))
+	status.name = "GearStatus_" + slot
+	parent.add_child(status)
+	gear_dropdowns[slot] = selector
+	gear_status_labels[slot] = status
+
+
+func _equip_selected(slot: String) -> void:
+	var selector := gear_dropdowns.get(slot) as OptionButton
+	if not is_instance_valid(selector) or selector.selected < 0:
+		return
+	var item := selector.get_item_text(selector.selected)
+	SaveStore.set_equipped_gear(slot, item)
+	var status := gear_status_labels.get(slot) as Label
+	if is_instance_valid(status):
+		status.text = "EQUIPPED: " + item.to_upper()
+		status.add_theme_color_override("font_color", Color("76ffcb"))
+
+
+func _refresh_profile_progress() -> void:
+	if not is_instance_valid(profile_progress_label):
+		return
+	var completed: Array = SaveStore.get_completed_levels()
+	var clear_count := completed.size()
+	profile_progress_label.text = "%d / %d MISSIONS CLEARED   •   %d UNLOCKED" % [clear_count, SaveStore.LEVEL_NAMES.size(), SaveStore.get_highest_unlocked_level() + 1]
+	profile_progress_bar.value = clear_count
+	for old_reward in profile_reward_list.get_children():
+		profile_reward_list.remove_child(old_reward)
+		old_reward.queue_free()
+	var reward_names := ["Breach Recruit", "Rooftop Runner", "Hideout Breaker", "Warden Slayer"]
+	for level_index in range(reward_names.size()):
+		var earned := completed.has(level_index)
+		var reward := _label(("✓  " if earned else "◇  ") + reward_names[level_index] + ("  •  UNLOCKED" if earned else "  •  LOCKED"), 11, Color("76ffcb") if earned else MUTED)
+		profile_reward_list.add_child(reward)
+
+
 func _add_gear_row(parent: VBoxContainer, index: String, item_name: String, detail: String) -> Label:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
@@ -706,20 +972,15 @@ func _refresh_character_profile() -> void:
 		key_material.shader = WHITE_WRAITH_KEY_SHADER
 		character_portrait.material = key_material
 	else:
-		character_portrait.texture = HERO_CONCEPT
+		character_portrait.texture = AnimFrames.get_klint_frames("idle")[0] as Texture2D
 	character_status.text = "ACTIVE OPERATIVE  •  QUEL" if white_selected else "ACTIVE OPERATIVE  •  KLINT"
 	character_status.add_theme_color_override("font_color", Color("eef7ff") if white_selected else Color("76ffcb"))
-	character_select_buttons[0].text = "✓  KLINT" if not white_selected else "KLINT"
-	character_select_buttons[1].text = "✓  QUEL" if white_selected else "QUEL"
-	if not character_gear_rows.is_empty():
-		var names := ["PALE EDGE KATANA", "ARMORED HOOD + VISOR", "IVORY CHEST + SHOULDER PLATES", "WHITE FOREARM BRACERS", "WHITE SIGNAL SASH", "PALE UTILITY BELT + SHEATH", "WHITE KNEE, SHIN + BOOT ARMOR"]
-		var blue_names := ["NIXBLADE KATANA", "ARMORED HOOD + VISOR", "COBALT CHEST + SHOULDER PLATES", "FOREARM BRACERS", "ENERGY SASH", "UTILITY BELT + KATANA SHEATH", "KNEE, SHIN + BOOT ARMOR"]
-		var white_details := ["White energy edge • primary melee weapon", "Low-profile mask • luminous targeting slit", "Layered pale armor • white unit insignia", "Blade-side guard • polished white gauntlets", "White signal cloth • trailing scarf panels", "Field pouches • white katana sheath", "Lightweight white protection • silver accents"]
-		var blue_details := ["Cyan plasma edge • primary melee weapon", "Low-profile mask • luminous targeting slit", "Layered impact armor • cyan unit insignia", "Blade-side guard • reinforced gauntlets", "Blue signal cloth • trailing scarf panels", "Field pouches • secured blade carry", "Lightweight protection • cyan accents"]
-		for index in range(character_gear_rows.size()):
-			var row: Dictionary = character_gear_rows[index]
-			(row["name"] as Label).text = names[index] if white_selected else blue_names[index]
-			(row["detail"] as Label).text = white_details[index] if white_selected else blue_details[index]
+	_set_hero_button_selected(character_select_buttons[0], not white_selected)
+	_set_hero_button_selected(character_select_buttons[1], white_selected)
+	for slot in gear_status_labels:
+		var status := gear_status_labels[slot] as Label
+		status.text = "EQUIPPED: " + SaveStore.get_equipped_gear(str(slot)).to_upper()
+	_refresh_profile_progress()
 
 
 func _add_rule(parent: VBoxContainer) -> void:
@@ -732,8 +993,10 @@ func _add_rule(parent: VBoxContainer) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if is_instance_valid(mobile_more_panel) and mobile_more_panel.visible and event.keycode == KEY_ESCAPE:
+		if ((is_instance_valid(mobile_more_panel) and mobile_more_panel.visible) or (is_instance_valid(desktop_more_panel) and desktop_more_panel.visible)) and event.keycode == KEY_ESCAPE:
 			mobile_more_panel.visible = false
+			if is_instance_valid(desktop_more_panel):
+				desktop_more_panel.visible = false
 			get_viewport().set_input_as_handled()
 		elif level_select_layer.visible and event.keycode == KEY_ESCAPE:
 			_close_level_select()
@@ -744,7 +1007,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif settings_layer.visible and event.keycode == KEY_ESCAPE:
 			_close_settings()
 			get_viewport().set_input_as_handled()
-		elif not settings_layer.visible and not character_layer.visible and not level_select_layer.visible and not mobile_more_panel.visible and event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
+		elif not settings_layer.visible and not character_layer.visible and not level_select_layer.visible and not mobile_more_panel.visible and (not is_instance_valid(desktop_more_panel) or not desktop_more_panel.visible) and event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
 			_start_game()
 			get_viewport().set_input_as_handled()
 	elif event is InputEventJoypadButton and event.pressed and not settings_layer.visible and not character_layer.visible and not level_select_layer.visible:
@@ -800,6 +1063,8 @@ func _transition_to_scene(scene_path: String, prompt_text: String) -> void:
 
 
 func _open_settings() -> void:
+	if is_instance_valid(desktop_more_panel):
+		desktop_more_panel.visible = false
 	character_layer.visible = false
 	settings_layer.visible = true
 	if is_instance_valid(mobile_more_panel):
@@ -812,12 +1077,15 @@ func _close_settings() -> void:
 	settings_layer.visible = false
 	_save_settings()
 	_layout_title()
-	var settings_button: Button = buttons[5] if buttons.size() > 5 else null
-	if settings_button:
-		settings_button.grab_focus()
+	if mobile_title_mode and is_instance_valid(mobile_more_button):
+		mobile_more_button.grab_focus()
+	elif is_instance_valid(desktop_more_button):
+		desktop_more_button.grab_focus()
 
 
 func _open_character() -> void:
+	if is_instance_valid(desktop_more_panel):
+		desktop_more_panel.visible = false
 	settings_layer.visible = false
 	character_layer.visible = true
 	if is_instance_valid(mobile_more_panel):
@@ -830,9 +1098,10 @@ func _open_character() -> void:
 func _close_character() -> void:
 	character_layer.visible = false
 	_layout_title()
-	var character_button: Button = buttons[4] if buttons.size() > 4 else null
-	if character_button:
-		character_button.grab_focus()
+	if mobile_title_mode and is_instance_valid(mobile_more_button):
+		mobile_more_button.grab_focus()
+	elif is_instance_valid(desktop_more_button):
+		desktop_more_button.grab_focus()
 
 
 func _layout_title() -> void:
@@ -841,7 +1110,7 @@ func _layout_title() -> void:
 	var viewport_size := get_viewport_rect().size
 	var touch_layout := viewport_size.x < 1000.0 or OS.has_feature("mobile") or DisplayServer.is_touchscreen_available()
 	_set_mobile_title_mode(touch_layout)
-	var scale_factor := clampf(minf(viewport_size.y / 820.0, viewport_size.x / 1280.0), 0.50, 1.0)
+	var scale_factor := clampf(minf(viewport_size.y / 900.0, viewport_size.x / 1280.0), 0.52, 1.0)
 	if touch_layout:
 		scale_factor = maxf(scale_factor, 0.96)
 	title_content.add_theme_constant_override("separation", 5 if touch_layout else 9)
@@ -863,6 +1132,9 @@ func _layout_title() -> void:
 					child.position.x = 119.0
 					child.size.x = 370.0
 					child.add_theme_font_size_override("font_size", 15)
+	if not touch_layout and buttons.size() >= 6:
+		buttons[4].custom_minimum_size = Vector2(340.0, 44.0)
+		buttons[5].custom_minimum_size = Vector2(340.0, 44.0)
 	if controls_hint != null:
 		controls_hint.text = "MOVE / JUMP     •     DODGE     •     SKILL     •     SLASH" if touch_layout else "MOVE  A / D     •     JUMP  SPACE ×2     •     SLASH  J / X\nFOCUS  PRESS E (3s ACTIVE / 10s COOLDOWN)     •     DASH  D + R     •     STORY  F     •     PAUSE  ESC"
 		controls_hint.add_theme_font_size_override("font_size", 16 if touch_layout else 12)
@@ -881,14 +1153,61 @@ func _layout_title() -> void:
 		var panel := settings_layer.get_node_or_null("CenterContainer/SettingsPanel") as Control
 		if panel:
 			panel.custom_minimum_size = Vector2(minf(510.0, viewport_size.x - 32.0), minf(500.0, viewport_size.y - 32.0))
+		var settings_content := settings_layer.get_node_or_null("CenterContainer/SettingsPanel/VBoxContainer") as VBoxContainer
+		if settings_content:
+			for settings_child in settings_content.get_children():
+				if settings_child is ColorRect:
+					settings_child.custom_minimum_size.x = minf(410.0, viewport_size.x - 96.0)
+				if settings_child is Button and settings_child.name == "SettingsBackButton":
+					settings_child.custom_minimum_size.x = maxf(180.0, viewport_size.x - 96.0) if touch_layout else 420.0
+		if is_instance_valid(master_slider):
+			master_slider.custom_minimum_size.x = minf(420.0, viewport_size.x - 96.0) if touch_layout else 420.0
+		if is_instance_valid(language_option):
+			language_option.custom_minimum_size.x = minf(420.0, viewport_size.x - 96.0) if touch_layout else 420.0
 	if character_layer != null:
 		var profile := character_layer.get_node_or_null("CenterContainer/CharacterPanel") as Control
 		if profile:
 			profile.custom_minimum_size = Vector2(minf(900.0, viewport_size.x - 32.0), minf(590.0, viewport_size.y - 32.0))
+			var profile_content := profile.get_node_or_null("ProfileScroll/VBoxContainer/CharacterContent") as BoxContainer
+			if profile_content:
+				profile_content.vertical = touch_layout
+				var portrait_frame := profile_content.get_node_or_null("HeroPortraitFrame") as Control
+				if portrait_frame:
+					portrait_frame.custom_minimum_size = Vector2(0.0, 190.0) if touch_layout else Vector2(315.0, 0.0)
+				var selection := profile_content.get_node_or_null("CharacterDetails/CharacterSelection") as BoxContainer
+				if selection:
+					selection.vertical = touch_layout
+				var details := profile_content.get_node_or_null("CharacterDetails") as VBoxContainer
+				if details:
+					for detail_child in details.get_children():
+						if detail_child is ColorRect:
+							detail_child.custom_minimum_size.x = minf(410.0, viewport_size.x - 96.0)
+			if is_instance_valid(character_back_button):
+				character_back_button.custom_minimum_size.x = maxf(180.0, viewport_size.x - 96.0) if touch_layout else 420.0
 	if level_select_layer != null:
 		var replay_panel := level_select_layer.get_node_or_null("CenterContainer/LevelSelectPanel") as Control
 		if replay_panel:
 			replay_panel.custom_minimum_size = Vector2(minf(540.0, viewport_size.x - 32.0), minf(620.0, viewport_size.y - 32.0))
+		if touch_layout:
+			var level_content := level_select_layer.get_node_or_null("CenterContainer/LevelSelectPanel/LevelSelectContent") as VBoxContainer
+			if level_content:
+				for level_child in level_content.get_children():
+					if level_child is ColorRect:
+						level_child.custom_minimum_size.x = minf(410.0, viewport_size.x - 96.0)
+				var list_scroll := level_content.get_node_or_null("LevelListScroll") as ScrollContainer
+				if list_scroll:
+					list_scroll.custom_minimum_size.y = maxf(120.0, minf(320.0, viewport_size.y - 240.0))
+			for level_button in level_select_buttons:
+				level_button.custom_minimum_size.x = maxf(180.0, viewport_size.x - 96.0)
+				_fit_mobile_menu_button(level_button)
+			if is_instance_valid(level_select_back_button):
+				level_select_back_button.custom_minimum_size.x = maxf(180.0, viewport_size.x - 96.0)
+				_fit_mobile_menu_button(level_select_back_button)
+	if is_instance_valid(desktop_more_button):
+		desktop_more_button.position = Vector2(viewport_size.x - 78.0, 24.0)
+		desktop_more_button.size = Vector2(52.0, 52.0)
+		desktop_more_panel.position = Vector2(viewport_size.x - 394.0, 84.0)
+		desktop_more_panel.size = Vector2(368.0, 124.0)
 	if touch_layout and is_instance_valid(mobile_menu):
 		var margin := clampf(viewport_size.x * 0.045, 18.0, 56.0)
 		var header_scale := clampf(minf(viewport_size.x / 700.0, viewport_size.y / 700.0), 0.68, 1.0)
@@ -904,6 +1223,10 @@ func _layout_title() -> void:
 		var action_width := minf(viewport_size.x * 0.73, 690.0)
 		var action_top := viewport_size.y * 0.285
 		var action_height := viewport_size.y - action_top - margin
+		var action_backdrop := mobile_menu.get_node_or_null("MobileActionsGlassPanel") as Control
+		if action_backdrop != null:
+			action_backdrop.position = Vector2(margin - 9.0, action_top - 10.0)
+			action_backdrop.size = Vector2(action_width + 18.0, action_height + 20.0)
 		mobile_actions_scroll.position = Vector2(margin, action_top)
 		mobile_actions_scroll.size = Vector2(action_width, action_height)
 		mobile_more_button.position = Vector2(viewport_size.x - margin - 64.0, margin)
@@ -951,6 +1274,16 @@ func _menu_button(text_value: String, primary := false, danger := false) -> Butt
 		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		art.danger = danger
 		art.active = false
+		if caption_text.contains("ENTER THE CITY") or caption_text.contains("CONTINUE"):
+			art.accent = Color("43eaff")
+		elif caption_text.contains("STORY"):
+			art.accent = Color("b68cff")
+		elif caption_text.contains("LEVEL SELECT"):
+			art.accent = Color("50f0c2")
+		elif caption_text.contains("CHARACTER") or caption_text.contains("PROFILE"):
+			art.accent = Color("7d9dff")
+		elif caption_text.contains("SETTINGS"):
+			art.accent = Color("a9bdc8")
 		button.add_child(art)
 		var number_label := _label(number_text, 16, CYAN)
 		number_label.position = Vector2(18, 0)
@@ -1048,10 +1381,23 @@ func _load_settings() -> void:
 		master_slider.value = _get_master_volume()
 	if is_instance_valid(fullscreen_toggle):
 		fullscreen_toggle.button_pressed = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+	if is_instance_valid(language_option):
+		var selected_language := str(config.get_value("general", "language", "en"))
+		language_option.select(1 if selected_language == "zh_CN" else 0)
+		_set_language_index(1 if selected_language == "zh_CN" else 0)
 
 
 func _save_settings() -> void:
 	var config := ConfigFile.new()
 	config.set_value("audio", "master_volume", master_slider.value if is_instance_valid(master_slider) else _get_master_volume())
 	config.set_value("display", "fullscreen", DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN)
+	config.set_value("general", "language", "zh_CN" if is_instance_valid(language_option) and language_option.selected == 1 else "en")
 	config.save(SETTINGS_PATH)
+
+
+func _set_language_index(index: int) -> void:
+	var locale := "zh_CN" if index == 1 else "en"
+	var i18n = get_node_or_null("/root/I18n")
+	if i18n != null and i18n.has_method("set_language"):
+		i18n.set_language(locale)
+	_save_settings()

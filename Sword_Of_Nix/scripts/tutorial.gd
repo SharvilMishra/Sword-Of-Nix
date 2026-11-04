@@ -828,7 +828,7 @@ func _begin_tutorial_exit() -> void:
 	instruction_overlay.visible = true
 	instruction_phase_label.text = "Breach Complete"
 	instruction_label.text = "Akai Gang Perimeter Breached"
-	instruction_detail_label.text = "The silent mercenary presses deeper into the stronghold."
+	instruction_detail_label.text = "Forty times before. The same rain. The same lightning. Shadow moves deeper into the stronghold."
 	if not auto_scene_change:
 		_mark_tutorial_complete()
 		return

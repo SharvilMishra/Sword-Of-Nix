@@ -15,9 +15,9 @@ func _ready() -> void:
 	_make_button("move_right", "▶", "Move right", Vector2.ZERO)
 	_make_button("aim_down", "▼", "Drop through platforms", Vector2.ZERO)
 	_make_button("aim_up", "▲\nJUMP", "Jump (up to two times) / aim up", Vector2.ZERO)
-	_make_button("dodge", "DODGE", "Dodge slash (mobile equivalent of holding D + R)", Vector2.ZERO)
-	_make_button("focus", "SKILL", "Klint: slow the world for 3 seconds. Quel: shield for 5 seconds, blocks 3 hits.", Vector2.ZERO)
-	_make_button("attack", "SLASH", "Attack", Vector2.ZERO)
+	_make_button("dodge", "≫\nDODGE", "Dodge slash (mobile equivalent of holding D + R)", Vector2.ZERO)
+	_make_button("focus", "◉\nSKILL", "Klint: slow the world for 3 seconds. Quel: shield for 5 seconds, blocks 3 hits.", Vector2.ZERO)
+	_make_button("attack", "↑\nSLASH", "Attack", Vector2.ZERO)
 	story_continue_button = _make_button("continue_story", "NEXT", "Continue story", Vector2.ZERO)
 	story_continue_button.visible = false
 	_make_button("pause_game", "Ⅱ\nPAUSE", "Pause", Vector2.ZERO)
@@ -30,18 +30,26 @@ func _make_button(action: String, text_value: String, tooltip: String, _unused_o
 	button.tooltip_text = tooltip
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.focus_mode = Control.FOCUS_NONE
+	button.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	button.add_theme_color_override("font_color", Color("d5faff"))
 	button.add_theme_color_override("font_pressed_color", Color("061319"))
 	button.add_theme_color_override("font_hover_color", Color("ffffff"))
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.02, 0.08, 0.11, 0.54)
-	normal.border_color = Color(0.25, 0.88, 0.97, 0.86)
+	normal.bg_color = Color(0.008, 0.035, 0.055, 0.48)
+	normal.border_color = Color(0.25, 0.88, 0.97, 0.92)
 	normal.set_border_width_all(2)
-	normal.set_corner_radius_all(12)
+	normal.set_corner_radius_all(14)
+	normal.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	normal.shadow_size = 5
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.025, 0.16, 0.22, 0.78)
+	hover.border_color = Color(0.55, 0.97, 1.0, 1.0)
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.25, 0.9, 1.0, 0.82)
+	pressed.bg_color = Color(0.20, 0.82, 0.91, 0.92)
+	pressed.border_color = Color(0.85, 1.0, 1.0, 1.0)
 	button.add_theme_stylebox_override("normal", normal)
-	button.add_theme_stylebox_override("hover", normal)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("focus", hover)
 	button.add_theme_stylebox_override("pressed", pressed)
 	button.button_down.connect(_dispatch_action.bind(action, true))
 	button.button_up.connect(_dispatch_action.bind(action, false))

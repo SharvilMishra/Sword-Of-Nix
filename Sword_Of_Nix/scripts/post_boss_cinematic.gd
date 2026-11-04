@@ -15,7 +15,7 @@ const DEFAULT_SLIDES: Array[Dictionary] = [
 	{
 		"panel": 0,
 		"chapter": "Act II  //  Cargo",
-		"caption": "The power station's underground warehouse.\nThe contract target is right under that lamp.",
+		"caption": "The power station's underground warehouse. Forty contracts have ended in this room. The target sits under the same lamp.",
 		"duration": 3.1,
 		"start_scale": 1.02,
 		"end_scale": 1.10,
@@ -25,7 +25,7 @@ const DEFAULT_SLIDES: Array[Dictionary] = [
 	{
 		"panel": 1,
 		"chapter": "Target Confirmed",
-		"caption": "No ID. No warning.\nJust a damp wooden crate.",
+		"caption": "No ID. No warning. Just a damp wooden crate that he already knows by heart.",
 		"duration": 2.8,
 		"start_scale": 1.08,
 		"end_scale": 1.02,
@@ -35,7 +35,7 @@ const DEFAULT_SLIDES: Array[Dictionary] = [
 	{
 		"panel": 2,
 		"chapter": "Execute Contract",
-		"caption": "Shadow draws his blade.\nOne last strike to finish the job.",
+		"caption": "Shadow draws his blade. One strike. He has done this so many times he could do it asleep.",
 		"duration": 2.7,
 		"start_scale": 1.01,
 		"end_scale": 1.09,
@@ -44,8 +44,8 @@ const DEFAULT_SLIDES: Array[Dictionary] = [
 	},
 	{
 		"panel": 2,
-		"chapter": "……",
-		"caption": "—Meow.",
+		"chapter": "......",
+		"caption": "Meow.",
 		"duration": 1.55,
 		"start_scale": 1.09,
 		"end_scale": 1.12,
@@ -55,7 +55,7 @@ const DEFAULT_SLIDES: Array[Dictionary] = [
 	{
 		"panel": 3,
 		"chapter": "Cargo",
-		"caption": "The lid slowly springs open.\nThe thing inside is trembling.",
+		"caption": "The lid slowly springs open. The thing inside is trembling. The blade in his hand starts to hum.",
 		"duration": 3.6,
 		"start_scale": 1.01,
 		"end_scale": 1.10,

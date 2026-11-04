@@ -2,41 +2,33 @@ class_name NeonAnimationFrames
 extends RefCounted
 
 # Literal preloads keep every runtime frame discoverable by the Web exporter.
-# Klint uses the original frame sets; Quel uses the separate atlas below.
+# Klint uses a cleaned, reflection-free atlas; Quel uses a separate atlas below.
 
-const HERO_IDLE = [
-	preload("res://assets/characters/blue_wraith/idle/idle_00.webp"),
-	preload("res://assets/characters/blue_wraith/idle/idle_01.webp"),
-	preload("res://assets/characters/blue_wraith/idle/idle_02.webp"),
-	preload("res://assets/characters/blue_wraith/idle/idle_03.webp"),
-]
+const KLINT_MAIN_SHEET: Texture2D = preload("res://assets/characters/blue_wraith/source/klint_redesign.png")
+const KLINT_ATLAS_SCALE := 0.6
+static var _klint_frames: Dictionary = {}
 
-const HERO_RUN = [
-	preload("res://assets/characters/blue_wraith/run/run_00.webp"),
-	preload("res://assets/characters/blue_wraith/run/run_01.webp"),
-	preload("res://assets/characters/blue_wraith/run/run_02.webp"),
-	preload("res://assets/characters/blue_wraith/run/run_03.webp"),
-]
+static func get_klint_frames(animation_name: String) -> Array:
+	if _klint_frames.is_empty():
+		var animation_rows := {"idle": 0, "run": 1, "jump": 2, "attack": 3, "death": 4}
+		var cell_size := KLINT_MAIN_SHEET.get_size() / Vector2(4.0, 5.0)
+		for animation in animation_rows:
+			var row := int(animation_rows[animation])
+			var frames: Array[Texture2D] = []
+			for column in range(4):
+				var frame := AtlasTexture.new()
+				frame.atlas = KLINT_MAIN_SHEET
+				frame.region = Rect2(Vector2(column, row) * cell_size, cell_size)
+				frame.filter_clip = true
+				frames.append(frame)
+			_klint_frames[animation] = frames
+	return _klint_frames.get(animation_name, _klint_frames["idle"])
 
 const HERO_JUMP = [
 	preload("res://assets/characters/blue_wraith/jump/jump_00.webp"),
 	preload("res://assets/characters/blue_wraith/jump/jump_01.webp"),
 	preload("res://assets/characters/blue_wraith/jump/jump_02.webp"),
 	preload("res://assets/characters/blue_wraith/jump/jump_03.webp"),
-]
-
-const HERO_ATTACK = [
-	preload("res://assets/characters/blue_wraith/attack/attack_00.webp"),
-	preload("res://assets/characters/blue_wraith/attack/attack_01.webp"),
-	preload("res://assets/characters/blue_wraith/attack/attack_02.webp"),
-	preload("res://assets/characters/blue_wraith/attack/attack_03.webp"),
-]
-
-const HERO_DEATH = [
-	preload("res://assets/characters/blue_wraith/death/death_00.webp"),
-	preload("res://assets/characters/blue_wraith/death/death_01.webp"),
-	preload("res://assets/characters/blue_wraith/death/death_02.webp"),
-	preload("res://assets/characters/blue_wraith/death/death_03.webp"),
 ]
 
 const WHITE_WRAITH_SHEET: Texture2D = preload("res://assets/characters/white_wraith_spritesheet.png")
