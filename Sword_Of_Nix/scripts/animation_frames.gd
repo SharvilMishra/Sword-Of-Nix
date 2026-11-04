@@ -51,6 +51,25 @@ static func get_white_wraith_frames(animation_name: String) -> Array:
 		return _white_wraith_frames.get(animation_name, _white_wraith_frames["idle"])
 	return _white_wraith_frames.get(animation_name, _white_wraith_frames["idle"])
 
+const RHEA_SHEET: Texture2D = preload("res://assets/characters/rhea/rhea_animation_atlas.png")
+static var _rhea_frames: Dictionary = {}
+
+static func get_rhea_frames(animation_name: String) -> Array:
+	if _rhea_frames.is_empty():
+		var cell_size := Vector2(RHEA_SHEET.get_width() / 4.0, RHEA_SHEET.get_height() / 5.0)
+		var animation_rows := {"idle": 0, "run": 1, "jump": 2, "attack": 3, "death": 4}
+		for animation in animation_rows:
+			var row := int(animation_rows[animation])
+			var frames: Array[Texture2D] = []
+			for column in range(4):
+				var frame := AtlasTexture.new()
+				frame.atlas = RHEA_SHEET
+				frame.region = Rect2(Vector2(column, row) * cell_size, cell_size)
+				frame.filter_clip = true
+				frames.append(frame)
+			_rhea_frames[animation] = frames
+	return _rhea_frames.get(animation_name, _rhea_frames["idle"])
+
 const BLADE_IDLE = [
 	preload("res://assets/characters/blade_guard/idle/idle_00.webp"),
 ]

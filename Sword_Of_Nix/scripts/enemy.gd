@@ -31,8 +31,10 @@ var applied_hurtbox_size := Vector2.ZERO
 var combat_active := true
 var resting_visual := false
 var resting_lean := 1.0
+var stun_remaining := 0.0
 
 func _ready() -> void:
+	add_to_group("enemy_entities")
 	collision_layer = 4
 	collision_mask = 1
 	hurtbox_collision = CollisionShape2D.new()
@@ -67,6 +69,16 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		return
 	var step := delta * simulation_scale
+	if stun_remaining > 0.0:
+		stun_remaining = maxf(0.0, stun_remaining - step)
+		windup = 0.0
+		action_committed = false
+		velocity.x = move_toward(velocity.x, 0.0, 1400.0 * step)
+		if not is_on_floor():
+			velocity.y += 1350.0 * step
+		move_and_slide()
+		queue_redraw()
+		return
 	action_clock -= step
 	alert = maxf(0.0, alert - step)
 	if not is_on_floor():
@@ -89,6 +101,13 @@ func _physics_process(delta: float) -> void:
 		_patrol(step)
 	move_and_slide()
 	queue_redraw()
+
+func apply_stun(duration: float) -> void:
+	if not alive or duration <= 0.0:
+		return
+	stun_remaining = maxf(stun_remaining, duration)
+	windup = 0.0
+	action_committed = false
 
 func _update_gunner(step: float, offset: Vector2) -> void:
 	if not alive or not combat_active:

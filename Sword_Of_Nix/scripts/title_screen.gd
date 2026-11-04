@@ -4,6 +4,7 @@ const TITLE_ART: Texture2D = preload("res://assets/world/title_splash.webp")
 const TITLE_BGM: AudioStream = preload("res://BGM SONG/Headlights_on_Wet_Pavement.mp3")
 const AnimFrames = preload("res://scripts/animation_frames.gd")
 const WHITE_WRAITH_KEY_SHADER: Shader = preload("res://shaders/white_wraith_key.gdshader")
+const RHEA_ALPHA_KEY_SHADER: Shader = preload("res://shaders/rhea_alpha_key.gdshader")
 const MENU_FONT: Font = preload("res://assets/template/fonts/ui_regular.tres")
 const SaveStore = preload("res://scripts/save_store.gd")
 const TUTORIAL_SCENE := "res://scenes/tutorial.tscn"
@@ -643,6 +644,11 @@ func _build_character_profile() -> void:
 	white_select.pressed.connect(func(): _select_player_character("white_wraith"))
 	selection_row.add_child(white_select)
 	character_select_buttons.append(white_select)
+	var rhea_select := _hero_select_button("RHEA", "VIOLET EDGE  /  FOCUS", AnimFrames.get_rhea_frames("idle")[0] as Texture2D, Color("d879ff"))
+	rhea_select.name = "SelectRhea"
+	rhea_select.pressed.connect(func(): _select_player_character("rhea"))
+	selection_row.add_child(rhea_select)
+	character_select_buttons.append(rhea_select)
 	character_description_label = _label("A silent blade in a city that never sleeps.\nBuilt for speed, precision, and a clean escape.", 14, MUTED)
 	character_description_label.name = "CharacterDescription"
 	character_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -707,7 +713,7 @@ class HeroCardArt extends Control:
 func _hero_select_button(hero_name: String, subtitle: String, portrait_texture: Texture2D, accent: Color) -> Button:
 	var button := Button.new()
 	button.text = ""
-	button.custom_minimum_size = Vector2(180, 82)
+	button.custom_minimum_size = Vector2(150, 82)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.focus_mode = Control.FOCUS_ALL
 	for state in ["normal", "hover", "focus", "pressed"]:
@@ -724,6 +730,10 @@ func _hero_select_button(hero_name: String, subtitle: String, portrait_texture: 
 	if hero_name == "QUEL":
 		var portrait_key := ShaderMaterial.new()
 		portrait_key.shader = WHITE_WRAITH_KEY_SHADER
+		portrait.material = portrait_key
+	elif hero_name == "RHEA":
+		var portrait_key := ShaderMaterial.new()
+		portrait_key.shader = RHEA_ALPHA_KEY_SHADER
 		portrait.material = portrait_key
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -961,22 +971,29 @@ func _select_player_character(character_id: String) -> void:
 func _refresh_character_profile() -> void:
 	if not is_instance_valid(character_portrait):
 		return
-	var white_selected := SaveStore.get_player_character() == "white_wraith"
-	character_name_label.text = "QUEL" if white_selected else "KLINT"
-	character_role_label.text = "PALE EDGE   /   CYBER-NINJA INFILTRATOR" if white_selected else "NIXBLADE   /   CYBER-NINJA INFILTRATOR"
-	character_description_label.text = "A pale silhouette against Nix City's neon rain.\nWhite armor and a bright blade cut through the dark." if white_selected else "A silent blade in a city that never sleeps.\nBuilt for speed, precision, and a clean escape."
+	var character_id := SaveStore.get_player_character()
+	var white_selected := character_id == "white_wraith"
+	var rhea_selected := character_id == "rhea"
+	character_name_label.text = "QUEL" if white_selected else ("RHEA" if rhea_selected else "KLINT")
+	character_role_label.text = "PALE EDGE   /   AEGIS OPERATIVE" if white_selected else ("VIOLET EDGE   /   RAPID DUELIST" if rhea_selected else "NIXBLADE   /   CYBER-NINJA INFILTRATOR")
+	character_description_label.text = "A pale silhouette against Nix City's neon rain.\nWhite armor and a bright blade cut through the dark." if white_selected else ("A precise duelist from the lower Nix wards.\nSilver hair, violet edge, and a fast striking style." if rhea_selected else "A silent blade in a city that never sleeps.\nBuilt for speed, precision, and a clean escape.")
 	character_portrait.material = null
 	if white_selected:
 		character_portrait.texture = AnimFrames.get_white_wraith_frames("idle")[0]
 		var key_material := ShaderMaterial.new()
 		key_material.shader = WHITE_WRAITH_KEY_SHADER
 		character_portrait.material = key_material
+	elif rhea_selected:
+		character_portrait.texture = AnimFrames.get_rhea_frames("idle")[0]
+		var rhea_key := ShaderMaterial.new()
+		rhea_key.shader = RHEA_ALPHA_KEY_SHADER
+		character_portrait.material = rhea_key
 	else:
 		character_portrait.texture = AnimFrames.get_klint_frames("idle")[0] as Texture2D
-	character_status.text = "ACTIVE OPERATIVE  •  QUEL" if white_selected else "ACTIVE OPERATIVE  •  KLINT"
-	character_status.add_theme_color_override("font_color", Color("eef7ff") if white_selected else Color("76ffcb"))
-	_set_hero_button_selected(character_select_buttons[0], not white_selected)
-	_set_hero_button_selected(character_select_buttons[1], white_selected)
+	character_status.text = "ACTIVE OPERATIVE  •  " + character_name_label.text
+	character_status.add_theme_color_override("font_color", Color("eef7ff") if white_selected else (Color("d879ff") if rhea_selected else Color("76ffcb")))
+	for index in range(character_select_buttons.size()):
+		_set_hero_button_selected(character_select_buttons[index], index == (2 if rhea_selected else (1 if white_selected else 0)))
 	for slot in gear_status_labels:
 		var status := gear_status_labels[slot] as Label
 		status.text = "EQUIPPED: " + SaveStore.get_equipped_gear(str(slot)).to_upper()

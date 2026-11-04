@@ -10,12 +10,14 @@ const CharacterRim = preload("res://scripts/character_rim.gd")
 const SaveStore = preload("res://scripts/save_store.gd")
 const ShieldVisual = preload("res://scripts/shield_visual.gd")
 const WHITE_WRAITH_KEY_SHADER: Shader = preload("res://shaders/white_wraith_key.gdshader")
+const RHEA_ALPHA_KEY_SHADER: Shader = preload("res://shaders/rhea_alpha_key.gdshader")
 const ATTACK_DURATION := 0.33
 const STANDING_HIT_START_FRAME := 1
 const STANDING_HIT_END_FRAME := 3
 const DEATH_DURATION := 0.82
 const SPRITE_SCALE := 0.88
 const WHITE_WRAITH_SCALE := 0.62
+const RHEA_SCALE := 0.66
 const IDLE_SCALE_RATIO := 1.18
 const IDLE_SPRITE_SCALE := SPRITE_SCALE / IDLE_SCALE_RATIO
 const RUN_SPRITE_SCALE := IDLE_SPRITE_SCALE
@@ -29,6 +31,7 @@ const FOCUS_DURATION_SECONDS := 3.0
 const FOCUS_COOLDOWN_SECONDS := 10.0
 const QUEL_SHIELD_DURATION_SECONDS := 5.0
 const QUEL_SHIELD_MAX_HITS := 3
+const RHEA_STUN_DURATION_SECONDS := 5.0
 
 var alive := true
 var health := MAX_HEALTH
@@ -45,6 +48,7 @@ var focus_cooldown_remaining := 0.0
 var focus_duration_remaining := 0.0
 var shield_duration_remaining := 0.0
 var shield_hits_remaining := 0
+var rhea_stun_remaining := 0.0
 var is_focusing := false
 var animation_clock := 0.0
 var death_time := 0.0
@@ -64,6 +68,7 @@ var force_idle_visual := false
 var drop_through_floor_y := INF
 var drop_through_remaining := 0.0
 var use_white_wraith := false
+var use_rhea := false
 
 func _ready() -> void:
 	collision_layer = 2
@@ -80,9 +85,14 @@ func _ready() -> void:
 	shield_visual.z_index = 2
 	add_child(shield_visual)
 	use_white_wraith = SaveStore.get_player_character() == "white_wraith"
+	use_rhea = SaveStore.get_player_character() == "rhea"
 	if use_white_wraith:
 		var key_material := ShaderMaterial.new()
 		key_material.shader = WHITE_WRAITH_KEY_SHADER
+		material = key_material
+	elif use_rhea:
+		var key_material := ShaderMaterial.new()
+		key_material.shader = RHEA_ALPHA_KEY_SHADER
 		material = key_material
 	# Both playable designs use their clean sprite without an added rim-light halo.
 	rim_light.visible = false
@@ -100,6 +110,7 @@ func _physics_process(delta: float) -> void:
 	focus_cooldown_remaining = maxf(0.0, focus_cooldown_remaining - delta)
 	focus_duration_remaining = maxf(0.0, focus_duration_remaining - delta)
 	shield_duration_remaining = maxf(0.0, shield_duration_remaining - delta)
+	rhea_stun_remaining = maxf(0.0, rhea_stun_remaining - delta)
 	if alive:
 		var focus_dash_held := Input.is_action_pressed("focus_dash") and Input.is_action_pressed("move_right")
 		if not focus_dash_held:
@@ -111,11 +122,16 @@ func _physics_process(delta: float) -> void:
 				shield_hits_remaining = QUEL_SHIELD_MAX_HITS
 				if is_instance_valid(shield_visual):
 					shield_visual.call("flash_hit")
+			elif use_rhea:
+				rhea_stun_remaining = RHEA_STUN_DURATION_SECONDS
+				_stun_all_enemies(RHEA_STUN_DURATION_SECONDS)
 			else:
 				focus_duration_remaining = FOCUS_DURATION_SECONDS
-		is_focusing = not use_white_wraith and control_enabled and focus_duration_remaining > 0.0
+		is_focusing = not use_white_wraith and not use_rhea and control_enabled and focus_duration_remaining > 0.0
 		if use_white_wraith:
 			focus_energy = 100.0 * shield_duration_remaining / QUEL_SHIELD_DURATION_SECONDS if is_shield_active() else 100.0 * (1.0 - focus_cooldown_remaining / FOCUS_COOLDOWN_SECONDS)
+		elif use_rhea:
+			focus_energy = 100.0 * rhea_stun_remaining / RHEA_STUN_DURATION_SECONDS if rhea_stun_remaining > 0.0 else 100.0 * (1.0 - focus_cooldown_remaining / FOCUS_COOLDOWN_SECONDS)
 		else:
 			focus_energy = 100.0 * focus_duration_remaining / FOCUS_DURATION_SECONDS if is_focusing else 100.0 * (1.0 - focus_cooldown_remaining / FOCUS_COOLDOWN_SECONDS)
 	else:
@@ -237,7 +253,7 @@ func get_attack_frame_index() -> int:
 	if attack_time <= 0.0:
 		return -1
 	var phase := 1.0 - attack_time / ATTACK_DURATION
-	var frames: Array = AnimFrames.get_white_wraith_frames("attack") if use_white_wraith else AnimFrames.get_klint_frames("attack")
+	var frames := _get_character_frames("attack")
 	return _phase_index(frames, phase)
 
 func is_attack_hitbox_active() -> bool:
@@ -355,7 +371,16 @@ func get_skill_status_text() -> String:
 		if is_shield_active():
 			return "SHIELD  %d HITS  %.1fs" % [shield_hits_remaining, shield_duration_remaining]
 		return "SHIELD READY" if focus_cooldown_remaining <= 0.0 else "SHIELD  %.1fs" % focus_cooldown_remaining
+	if use_rhea:
+		if rhea_stun_remaining > 0.0:
+			return "ENEMIES STUNNED  %.1fs" % rhea_stun_remaining
+		return "STUN READY" if focus_cooldown_remaining <= 0.0 else "STUN  %.1fs" % focus_cooldown_remaining
 	return "FOCUS ACTIVE  %.1fs" % focus_duration_remaining if is_focusing else ("FOCUS READY" if focus_cooldown_remaining <= 0.0 else "FOCUS  %.1fs" % focus_cooldown_remaining)
+
+func _stun_all_enemies(duration: float) -> void:
+	for enemy in get_tree().get_nodes_in_group("enemy_entities"):
+		if is_instance_valid(enemy) and enemy.has_method("apply_stun"):
+			enemy.call("apply_stun", duration)
 
 func _refresh_simulation_scale() -> void:
 	simulation_scale = external_time_scale
@@ -404,33 +429,35 @@ func get_jump_launch_speed() -> float:
 	return TuningStore.get_value("jump_force") * TuningStore.get_value("jump_launch_multiplier")
 
 func _resolve_visual_state() -> Dictionary:
-	var frames: Array = AnimFrames.get_white_wraith_frames("idle") if use_white_wraith else AnimFrames.get_klint_frames("idle")
+	var frames: Array = _get_character_frames("idle")
 	var frame_index: int = 0
 	var sprite_scale := IDLE_SPRITE_SCALE
-	var uses_klint_atlas := not use_white_wraith
+	var uses_klint_atlas := not use_white_wraith and not use_rhea
 	if not alive:
-		frames = AnimFrames.get_white_wraith_frames("death") if use_white_wraith else AnimFrames.get_klint_frames("death")
+		frames = _get_character_frames("death")
 		frame_index = _phase_index(frames, death_time / DEATH_DURATION)
 		sprite_scale = SPRITE_SCALE
 	elif force_idle_visual:
 		pass
 	elif attack_time > 0.0:
-		frames = AnimFrames.get_white_wraith_frames("attack") if use_white_wraith else AnimFrames.get_klint_frames("attack")
+		frames = _get_character_frames("attack")
 		frame_index = _phase_index(frames, 1.0 - attack_time / ATTACK_DURATION)
 		sprite_scale = SPRITE_SCALE
 	elif not is_on_floor():
-		frames = AnimFrames.get_white_wraith_frames("jump") if use_white_wraith else AnimFrames.get_klint_frames("jump")
-		uses_klint_atlas = not use_white_wraith
+		frames = _get_character_frames("jump")
+		uses_klint_atlas = not use_white_wraith and not use_rhea
 		frame_index = mini(int(floor(jump_animation_clock * TuningStore.get_value("jump_animation_fps"))), frames.size() - 1)
 		sprite_scale = SPRITE_SCALE
 	elif absf(velocity.x) > 24.0:
-		frames = AnimFrames.get_white_wraith_frames("run") if use_white_wraith else AnimFrames.get_klint_frames("run")
+		frames = _get_character_frames("run")
 		frame_index = int(floor(animation_clock * 12.0)) % frames.size()
 		sprite_scale = RUN_SPRITE_SCALE
 	elif not force_idle_visual:
 		frame_index = int(floor(animation_clock * 3.0)) % frames.size()
 	if use_white_wraith:
 		sprite_scale *= WHITE_WRAITH_SCALE
+	elif use_rhea:
+		sprite_scale *= RHEA_SCALE
 	elif uses_klint_atlas:
 		sprite_scale *= AnimFrames.KLINT_ATLAS_SCALE
 	var texture := frames[frame_index] as Texture2D
@@ -441,6 +468,13 @@ func _resolve_visual_state() -> Dictionary:
 		"scale": sprite_scale,
 		"horizontal_flip": horizontal_flip
 	}
+
+func _get_character_frames(animation_name: String) -> Array:
+	if use_white_wraith:
+		return AnimFrames.get_white_wraith_frames(animation_name)
+	if use_rhea:
+		return AnimFrames.get_rhea_frames(animation_name)
+	return AnimFrames.get_klint_frames(animation_name)
 
 func _sync_rim_light() -> void:
 	if not is_instance_valid(rim_light):

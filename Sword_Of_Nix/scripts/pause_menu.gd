@@ -13,11 +13,14 @@ var resume_button: Button
 var restart_button: Button
 var tutorial_button: Button
 var title_button: Button
+var content_box: VBoxContainer
 
 func _ready() -> void:
 	layer = 70
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_menu()
+	get_viewport().size_changed.connect(_layout_pause_menu)
+	_layout_pause_menu()
 
 func _build_menu() -> void:
 	overlay = Control.new()
@@ -47,42 +50,50 @@ func _build_menu() -> void:
 	top_rule.color = Color("39e6ff")
 	panel.add_child(top_rule)
 
-	var content := VBoxContainer.new()
-	content.position = Vector2(42, 24)
-	content.size = Vector2(356, 332)
-	content.add_theme_constant_override("separation", 9)
-	panel.add_child(content)
+	content_box = VBoxContainer.new()
+	content_box.position = Vector2(30, 24)
+	content_box.size = Vector2(380, 332)
+	content_box.add_theme_constant_override("separation", 9)
+	panel.add_child(content_box)
 
 	var eyebrow := _label("BATTLE PAUSED", 12, Color("69d9e9"))
 	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(eyebrow)
+	content_box.add_child(eyebrow)
 	var title := _label("Pause Menu", 34, Color("eefcff"))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(title)
+	content_box.add_child(title)
 	var status := _label("Choose what to do next.", 13, Color("9bb0b7"))
 	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status.custom_minimum_size.y = 24
-	content.add_child(status)
+	content_box.add_child(status)
 	var separator := HSeparator.new()
 	separator.add_theme_color_override("separator", Color(0.25, 0.8, 0.9, 0.28))
-	content.add_child(separator)
+	content_box.add_child(separator)
 
 	title_button = _button("LEAVE BATTLE")
 	title_button.name = "PauseTitleButton"
 	title_button.pressed.connect(_return_to_title)
-	content.add_child(title_button)
+	content_box.add_child(title_button)
 	resume_button = _button("RESUME", true)
 	resume_button.name = "ResumeButton"
 	resume_button.pressed.connect(resume_game)
-	content.add_child(resume_button)
+	content_box.add_child(resume_button)
 	restart_button = _button("RESTART")
 	restart_button.name = "RestartButton"
 	restart_button.pressed.connect(_restart)
-	content.add_child(restart_button)
+	content_box.add_child(restart_button)
 
 	var footer := _label("ESC  //  RESUME", 11, Color("607983"))
 	footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(footer)
+	content_box.add_child(footer)
+
+func _layout_pause_menu() -> void:
+	if not is_instance_valid(panel):
+		return
+	var viewport_size := get_viewport().get_visible_rect().size
+	var scale_factor := clampf(minf(viewport_size.x / 500.0, viewport_size.y / 440.0), 0.45, 1.0)
+	panel.scale = Vector2.ONE * scale_factor
+	panel.position = -panel.size * scale_factor * 0.5
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("pause_game") or event.is_echo():

@@ -894,6 +894,15 @@ func _build_hud() -> void:
 	focus_wash.color = Color(0.15, 0.9, 1.0, 0.0)
 	focus_wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui.add_child(focus_wash)
+	_add_hud_glass(ui, "PlayerStatusGlass", Vector2(24, 12), Vector2(300, 96), Color("45dff2"))
+	_add_hud_glass(ui, "ControlsGlass", Vector2(24, 110), Vector2(398, 124), Color("45dff2"))
+	var timer_glass := ColorRect.new()
+	timer_glass.name = "TimerGlass"
+	timer_glass.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	timer_glass.position = Vector2(-204, 22)
+	timer_glass.size = Vector2(178, 54)
+	timer_glass.color = Color(0.006, 0.025, 0.04, 0.56)
+	ui.add_child(timer_glass)
 
 	objective_label = _hud_label("Mission", 14, Color("78eafa"))
 	objective_label.position = Vector2(38, 52)
@@ -908,7 +917,7 @@ func _build_hud() -> void:
 	enemies_label.size = Vector2(250, 30)
 	ui.add_child(enemies_label)
 	controls_panel = ColorRect.new()
-	controls_panel.color = Color(0.015, 0.035, 0.05, 0.42)
+	controls_panel.color = Color(0.015, 0.035, 0.05, 0.0)
 	controls_panel.position = Vector2(28, 116)
 	controls_panel.size = Vector2(390, 104)
 	controls_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1050,6 +1059,14 @@ func _on_viewport_changed() -> void:
 		controls_panel.visible = not touch_layout
 	if controls_label:
 		controls_label.visible = not touch_layout
+	if is_instance_valid(death_overlay) and death_overlay.get_child_count() > 1:
+		var death_center := death_overlay.get_child(1) as CenterContainer
+		if is_instance_valid(death_center) and death_center.get_child_count() > 0:
+			var death_panel := death_center.get_child(0) as PanelContainer
+			death_panel.custom_minimum_size = Vector2(minf(500.0, size.x - 32.0), minf(300.0, size.y - 24.0))
+			for child in death_panel.get_child(0).get_children():
+				if child is Button:
+					child.custom_minimum_size.x = minf(420.0, size.x - 104.0)
 	if focus_back and focus_text:
 		focus_back.position = Vector2((size.x - focus_back.size.x) * 0.5, -18.0) if touch_layout else Vector2(38.0, -61.0)
 		focus_text.position = Vector2((size.x - focus_text.size.x) * 0.5, -46.0) if touch_layout else Vector2(38.0, -88.0)
@@ -1062,6 +1079,27 @@ func _hud_label(text_value: String, font_size: int, color: Color) -> Label:
 	label.add_theme_constant_override("outline_size", 5)
 	label.add_theme_color_override("font_outline_color", Color(0.005, 0.012, 0.022, 0.72))
 	return label
+
+func _add_hud_glass(parent: Node, node_name: String, at: Vector2, panel_size: Vector2, accent: Color) -> void:
+	var plate := ColorRect.new()
+	plate.name = node_name
+	plate.position = at
+	plate.size = panel_size
+	plate.color = Color(0.006, 0.020, 0.033, 0.58)
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(plate)
+	var top_edge := ColorRect.new()
+	top_edge.position = Vector2.ZERO
+	top_edge.size = Vector2(panel_size.x * 0.68, 2.0)
+	top_edge.color = Color(accent.r, accent.g, accent.b, 0.72)
+	top_edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.add_child(top_edge)
+	var side_edge := ColorRect.new()
+	side_edge.position = Vector2.ZERO
+	side_edge.size = Vector2(3.0, panel_size.y)
+	side_edge.color = Color(accent.r, accent.g, accent.b, 0.60)
+	side_edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.add_child(side_edge)
 
 func _ensure_input_actions() -> void:
 	_add_key_action("move_left", [KEY_A, KEY_LEFT])

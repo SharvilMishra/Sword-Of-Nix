@@ -725,6 +725,15 @@ func _build_hud() -> void:
 	focus_wash.color = Color(0.12, 0.82, 1.0, 0.0)
 	focus_wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui.add_child(focus_wash)
+	_add_battle_glass(ui, "BossStatusGlass", Vector2(24, 22), Vector2(245, 112), Color("ff756f"))
+	_add_battle_glass(ui, "BossTargetGlass", Vector2(370, 70), Vector2(548, 64), Color("ff756f"))
+	var timer_glass := ColorRect.new()
+	timer_glass.name = "TimerGlass"
+	timer_glass.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	timer_glass.position = Vector2(-204.0, 22.0)
+	timer_glass.size = Vector2(178.0, 54.0)
+	timer_glass.color = Color(0.026, 0.009, 0.018, 0.60)
+	ui.add_child(timer_glass)
 
 	var eyebrow := _hud_label("Final Target  //  Rooftop Zero", 13, Color("ff8278"))
 	eyebrow.position = Vector2(38.0, 32.0)
@@ -893,6 +902,9 @@ func _build_end_overlay() -> void:
 	title_button.name = "BossTitleButton"
 	title_button.pressed.connect(func(): get_tree().change_scene_to_file(TITLE_SCENE))
 	box.add_child(title_button)
+	var results_note := _hud_label("RUN COMPLETE   /   NIX CITY SECURED", 12, Color("79e4eb"))
+	results_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(results_note)
 
 func _update_hud() -> void:
 	if not is_instance_valid(player):
@@ -1168,9 +1180,43 @@ func _on_viewport_changed() -> void:
 		camera.limit_right = int(ARENA_WIDTH)
 	var size := get_viewport_rect().size
 	var touch_layout := size.x < 1000.0 or OS.has_feature("mobile") or DisplayServer.is_touchscreen_available()
+	if is_instance_valid(death_overlay) and death_overlay.get_child_count() > 1:
+		var death_center := death_overlay.get_child(1) as CenterContainer
+		if is_instance_valid(death_center) and death_center.get_child_count() > 0:
+			var death_panel := death_center.get_child(0) as PanelContainer
+			death_panel.custom_minimum_size = Vector2(minf(500.0, size.x - 32.0), minf(300.0, size.y - 24.0))
+			var death_content := death_panel.get_child(0) as VBoxContainer
+			for child in death_content.get_children():
+				if child is Button:
+					child.custom_minimum_size.x = minf(420.0, size.x - 104.0)
+	if is_instance_valid(end_overlay) and end_overlay.get_child_count() > 1:
+		var results_box := end_overlay.get_child(1) as Control
+		if is_instance_valid(results_box):
+			var result_scale := clampf(minf(size.x / 580.0, size.y / 430.0), 0.45, 1.0)
+			results_box.scale = Vector2.ONE * result_scale
+			results_box.position = -results_box.size * result_scale * 0.5
 	if focus_back and focus_text:
 		focus_back.position = Vector2((size.x - focus_back.size.x) * 0.5, -18.0) if touch_layout else Vector2(38.0, -61.0)
 		focus_text.position = Vector2((size.x - focus_text.size.x) * 0.5, -46.0) if touch_layout else Vector2(38.0, -88.0)
+
+func _add_battle_glass(parent: Node, node_name: String, at: Vector2, panel_size: Vector2, accent: Color) -> void:
+	var plate := ColorRect.new()
+	plate.name = node_name
+	plate.position = at
+	plate.size = panel_size
+	plate.color = Color(0.018, 0.009, 0.018, 0.56)
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(plate)
+	var rule := ColorRect.new()
+	rule.size = Vector2(panel_size.x * 0.72, 2.0)
+	rule.color = Color(accent.r, accent.g, accent.b, 0.72)
+	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.add_child(rule)
+	var edge := ColorRect.new()
+	edge.size = Vector2(3.0, panel_size.y)
+	edge.color = Color(accent.r, accent.g, accent.b, 0.66)
+	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.add_child(edge)
 
 func _hud_label(text_value: String, font_size: int, color: Color) -> Label:
 	var label := Label.new()

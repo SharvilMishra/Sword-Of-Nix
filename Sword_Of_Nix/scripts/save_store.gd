@@ -58,7 +58,7 @@ static func get_player_character() -> String:
 	return str(_load_data().get("player_character", "blue_wraith"))
 
 static func set_player_character(character_id: String) -> void:
-	if character_id not in ["blue_wraith", "white_wraith"]:
+	if character_id not in ["blue_wraith", "white_wraith", "rhea"]:
 		return
 	var data := _load_data()
 	data["player_character"] = character_id
@@ -151,7 +151,7 @@ static func _load_data() -> Dictionary:
 			"current_level": clampi(int(parsed.get("current_level", 0)), 0, unlocked),
 			"unlocked_level": unlocked,
 			"completed_levels": completed,
-			"player_character": str(parsed.get("player_character", "blue_wraith")) if str(parsed.get("player_character", "blue_wraith")) in ["blue_wraith", "white_wraith"] else "blue_wraith",
+			"player_character": str(parsed.get("player_character", "blue_wraith")) if str(parsed.get("player_character", "blue_wraith")) in ["blue_wraith", "white_wraith", "rhea"] else "blue_wraith",
 			"equipped_gear": parsed.get("equipped_gear", {"weapon": "Nixblade Katana", "armor": "Cobalt Field Armor", "charm": "Focus Core"})
 		}
 	if stored_version == 2:

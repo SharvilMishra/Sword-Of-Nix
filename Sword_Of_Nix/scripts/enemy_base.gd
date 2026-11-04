@@ -44,6 +44,7 @@ func setup(pos: Vector2, data: Dictionary) -> void:
 
 func _ready() -> void:
 	super()
+	add_to_group("enemy_entities")
 	var hs := GS.tuning("enemy_health_scale", 1.0)
 	max_hp *= hs
 	hp = max_hp
@@ -113,6 +114,12 @@ func _physics_process(delta: float) -> void:
 		spot_t += delta
 		if spot_t > 0.7:
 			spot_t = -1.0
+	if stun_t > 0.0:
+		frame = "hurt"
+		velocity.x = move_toward(velocity.x, 0.0, 1400.0 * delta)
+		_gravity_move(delta)
+		queue_redraw()
+		return
 	_ai(delta)
 	if contact_damage > 0.0 and contact_cd <= 0.0 and player_alive():
 		var p := player()
@@ -124,6 +131,12 @@ func _physics_process(delta: float) -> void:
 
 func _ai(_delta: float) -> void:
 	pass
+
+
+func apply_stun(duration: float) -> void:
+	if dead or duration <= 0.0:
+		return
+	stun_t = maxf(stun_t, duration)
 
 
 func _gravity_move(delta: float) -> void:

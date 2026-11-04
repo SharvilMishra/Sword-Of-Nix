@@ -64,8 +64,10 @@ var melee_parry_count := 0
 var body_sprite: Sprite2D
 var rim_light: Sprite2D
 var hurtbox_collision: CollisionShape2D
+var stun_remaining := 0.0
 
 func _ready() -> void:
+	add_to_group("enemy_entities")
 	collision_layer = 4
 	collision_mask = 1
 	max_health = maxi(1, int(round(TuningStore.get_value("boss_max_health"))))
@@ -117,6 +119,17 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not player.alive:
 		velocity.x = move_toward(velocity.x, 0.0, 900.0 * step)
 		_move_scaled()
+		return
+	if stun_remaining > 0.0:
+		stun_remaining = maxf(0.0, stun_remaining - step)
+		state = BossState.STAGGER
+		state_clock = stun_remaining
+		strike_committed = false
+		teleport_committed = false
+		ranged_shots_remaining = 0
+		velocity.x = move_toward(velocity.x, 0.0, 1500.0 * step)
+		_move_scaled()
+		queue_redraw()
 		return
 	facing = signf(player.global_position.x - global_position.x) if absf(player.global_position.x - global_position.x) > 3.0 else facing
 	state_clock -= step
@@ -197,6 +210,16 @@ func _begin_next_attack() -> void:
 		state_clock = RANGED_WINDUP
 		attack_announced.emit("Bullet Volley // Parry", Color("ffb04f"))
 	attack_index += 1
+
+func apply_stun(duration: float) -> void:
+	if not alive or duration <= 0.0:
+		return
+	stun_remaining = maxf(stun_remaining, duration)
+	state = BossState.STAGGER
+	state_clock = stun_remaining
+	strike_committed = false
+	teleport_committed = false
+	ranged_shots_remaining = 0
 
 func _commit_melee_strike() -> void:
 	if strike_committed:

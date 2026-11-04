@@ -95,6 +95,8 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	slides = _load_story_slides()
 	_build_ui()
+	get_viewport().size_changed.connect(_on_viewport_changed)
+	_on_viewport_changed()
 	visible = false
 
 func _load_story_slides() -> Array[Dictionary]:
@@ -197,7 +199,7 @@ func _build_ui() -> void:
 	skip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	overlay.add_child(skip_label)
 
-	final_title = _label("To Be Continued…", 42, Color("e9f8f6"))
+	final_title = _label("MISSION COMPLETE", 42, Color("e9f8f6"))
 	final_title.name = "ToBeContinued"
 	final_title.set_anchors_preset(Control.PRESET_CENTER)
 	final_title.position = Vector2(-360.0, -52.0)
@@ -206,11 +208,11 @@ func _build_ui() -> void:
 	final_title.visible = false
 	overlay.add_child(final_title)
 
-	final_hint = _label("Press Any Key to Return to Title", 13, Color("587276"))
+	final_hint = _label("WARDEN DEFEATED  •  TO BE CONTINUED  •  PRESS ANY KEY TO RETURN", 13, Color("8cb8be"))
 	final_hint.name = "EpilogueExitHint"
 	final_hint.set_anchors_preset(Control.PRESET_CENTER)
-	final_hint.position = Vector2(-220.0, 42.0)
-	final_hint.size = Vector2(440.0, 30.0)
+	final_hint.position = Vector2(-380.0, 42.0)
+	final_hint.size = Vector2(760.0, 42.0)
 	final_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	final_hint.visible = false
 	overlay.add_child(final_hint)
@@ -302,6 +304,19 @@ func _present_final() -> void:
 	reveal.tween_property(final_title, "modulate:a", 1.0, 0.75 * presentation_scale)
 	reveal.tween_property(final_hint, "modulate:a", 1.0, 0.50 * presentation_scale).set_delay(0.65 * presentation_scale)
 	await reveal.finished
+
+func _on_viewport_changed() -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	var touch_layout := viewport_size.x < 1000.0 or OS.has_feature("mobile") or DisplayServer.is_touchscreen_available()
+	var title_width := minf(720.0, viewport_size.x - 32.0)
+	final_title.position = Vector2(-title_width * 0.5, -52.0)
+	final_title.size = Vector2(title_width, 72.0)
+	final_title.add_theme_font_size_override("font_size", clampi(roundi(viewport_size.x / 20.0), 22, 42))
+	var hint_width := minf(760.0, viewport_size.x - 28.0)
+	final_hint.position = Vector2(-hint_width * 0.5, 42.0)
+	final_hint.size = Vector2(hint_width, 46.0)
+	final_hint.add_theme_font_size_override("font_size", clampi(roundi(viewport_size.x / 92.0), 10, 13))
+	final_hint.text = "WARDEN DEFEATED  •  TAP TO RETURN" if touch_layout else "WARDEN DEFEATED  •  TO BE CONTINUED  •  PRESS ANY KEY TO RETURN"
 
 func show_slide_preview(index: int) -> void:
 	slides = _load_story_slides()

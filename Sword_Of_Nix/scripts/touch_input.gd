@@ -35,7 +35,7 @@ func _make_button(action: String, text_value: String, tooltip: String, _unused_o
 	button.add_theme_color_override("font_pressed_color", Color("061319"))
 	button.add_theme_color_override("font_hover_color", Color("ffffff"))
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.008, 0.035, 0.055, 0.48)
+	normal.bg_color = Color(0.008, 0.035, 0.055, 0.66)
 	normal.border_color = Color(0.25, 0.88, 0.97, 0.92)
 	normal.set_border_width_all(2)
 	normal.set_corner_radius_all(14)
@@ -96,22 +96,28 @@ func _update_visibility() -> void:
 	root.visible = touch_layout
 	if not touch_layout:
 		return
-	var ui_scale := clampf(minf(viewport_size.x / 1280.0, viewport_size.y / 720.0), 0.78, 1.0)
-	var pad := 84.0 * ui_scale
-	var edge := 28.0 * ui_scale
-	var bottom := 24.0 * ui_scale
-	_place("move_left", Vector2(edge, -bottom - pad - 8.0 * ui_scale), Vector2(pad, pad), 26)
-	_place("move_right", Vector2(edge + pad * 2.08, -bottom - pad - 8.0 * ui_scale), Vector2(pad, pad), 26)
-	_place("aim_up", Vector2(edge + pad + 8.0 * ui_scale, -bottom - pad * 2.08 - 16.0 * ui_scale), Vector2(pad, pad), 15)
-	_place("aim_down", Vector2(edge + pad + 8.0 * ui_scale, -bottom), Vector2(pad, pad), 15)
-	var action_size := Vector2(94.0, 82.0) * ui_scale
-	var right_edge := 22.0 * ui_scale
-	_place("attack", Vector2(-right_edge - action_size.x, -bottom - action_size.y), action_size, 17)
-	_place("focus", Vector2(-right_edge - action_size.x * 2.0 - 10.0 * ui_scale, -bottom - action_size.y), action_size, 16)
-	_place("dodge", Vector2(-right_edge - action_size.x * 3.0 - 20.0 * ui_scale, -bottom - action_size.y), action_size, 16)
-	_place("continue_story", Vector2(-150.0 * ui_scale, 22.0 * ui_scale), Vector2(112.0, 54.0) * ui_scale, 18)
-	_place("pause_game", Vector2(-edge - 90.0 * ui_scale, 22.0 * ui_scale), Vector2(82.0, 54.0) * ui_scale, 14)
-
+	var compact_portrait := viewport_size.x < 700.0 or viewport_size.x < viewport_size.y * 0.82
+	var ui_scale := clampf(minf(viewport_size.x / 1280.0, viewport_size.y / 720.0), 0.72, 1.18)
+	var pad := clampf(viewport_size.x * 0.105, 66.0, 108.0) if compact_portrait else 84.0 * ui_scale
+	var edge := 14.0 if compact_portrait else 28.0 * ui_scale
+	var bottom := 14.0 if compact_portrait else 24.0 * ui_scale
+	_place("move_left", Vector2(edge, -bottom - pad * 2.0 - 6.0), Vector2(pad, pad), 24)
+	_place("move_right", Vector2(edge + pad * 2.0 + 5.0, -bottom - pad * 2.0 - 6.0), Vector2(pad, pad), 24)
+	_place("aim_up", Vector2(edge + pad + 3.0, -bottom - pad * 3.0 - 10.0), Vector2(pad, pad), 14)
+	_place("aim_down", Vector2(edge + pad + 3.0, -bottom - pad), Vector2(pad, pad), 14)
+	var action_size := Vector2(82.0, 76.0) if compact_portrait else Vector2(104.0, 92.0) * ui_scale
+	var gap := 8.0 if compact_portrait else 10.0 * ui_scale
+	var right_edge := 12.0 if compact_portrait else 30.0 * ui_scale
+	if compact_portrait:
+		_place("attack", Vector2(-right_edge - action_size.x, -bottom - action_size.y), action_size, 16)
+		_place("focus", Vector2(-right_edge - action_size.x, -bottom - action_size.y * 2.0 - gap), action_size, 15)
+		_place("dodge", Vector2(-right_edge - action_size.x, -bottom - action_size.y * 3.0 - gap * 2.0), action_size, 15)
+	else:
+		_place("attack", Vector2(-right_edge - action_size.x, -bottom - action_size.y), action_size, 17)
+		_place("focus", Vector2(-right_edge - action_size.x * 2.0 - gap, -bottom - action_size.y), action_size, 16)
+		_place("dodge", Vector2(-right_edge - action_size.x * 3.0 - gap * 2.0, -bottom - action_size.y), action_size, 16)
+	_place("continue_story", Vector2(-150.0 * ui_scale, 18.0 * ui_scale), Vector2(112.0, 54.0) * ui_scale, 18)
+	_place("pause_game", Vector2(-edge - 90.0 * ui_scale, 18.0 * ui_scale), Vector2(82.0, 54.0) * ui_scale, 14)
 func _place(action: String, offset: Vector2, button_size: Vector2, font_size: int) -> void:
 	var button: Button = action_buttons.get(action)
 	if not is_instance_valid(button):
